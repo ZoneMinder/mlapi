@@ -1,4 +1,6 @@
 **/.DS_Store
+db/db.json
+test/detect.sh
 build/
 dist/
 *.egg-info/
