@@ -3,6 +3,13 @@ What
 An API gateway that you can install in your own server to do object, face and gender recognition.
 Easy to extend to many/any other model
 
+Technologies
+=============
+- I use  [cvlib](https://github.com/arunponnusamy/cvlib) by @arunponnusamy - easy to use wrapper for object detection
+- Flask/Flask_restful for the API gateway
+- TinyDB with SHA256 for password encryption
+- flask_jwt_extended for JWT based access tokens
+
 Install
 =======
 - It's best to create a virtual environment with python3 
