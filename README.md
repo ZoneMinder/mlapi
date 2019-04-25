@@ -10,6 +10,10 @@ Technologies
 - TinyDB with SHA256 for password encryption
 - flask_jwt_extended for JWT based access tokens
 
+Why
+=====
+Wanted to learn how to write an API gateway easily. Object detection was a good use-case since I use it extensively for other things (like my event server). This is the first time I've used flask/jwt/tinydb etc. so its very likely there are improvements that can be made. Feel free to PR.
+
 Install
 =======
 - It's best to create a virtual environment with python3 
