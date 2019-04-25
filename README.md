@@ -62,7 +62,7 @@ curl -F "file=@1.jpg" -H "Authorization:Bearer ${ACCESS_TOKEN}" -XPOST "http://l
 
 ```
 
-Note that the server stores the images and the objects detected inside its `images/` folder. If you want the server to delete them after analysis add `&delete=true" to the query parameters.
+Note that the server stores the images and the objects detected inside its `images/` folder. If you want the server to delete them after analysis add `&delete=true` to the query parameters.
 
 
 Sample responses for both of the commands above:
