@@ -1,7 +1,7 @@
 tinydb
 passlib
 numpy
-opencv-python
+opencv_python
 requests
 progressbar
 pillow
