@@ -1,0 +1,8 @@
+curl -H "Content-Type:application/json" -XPOST -d '{"username":"dbell", "password":"dbell"}' "http://localhost:5000/api/v1/login"
+curl -F "file=@image.jpg" -H "Authorization:Bearer ${ACCESS_TOKEN}" -XPOST "http://localhost:5000/api/v1/detect/face" 
+
+curl -H "Content-Type:application/json" -XPOST -d '{"username":"dbell", "password":"xT67&pXCRND$%6"}' "http://pliablepixels.duckdns.org:9988/api/v1/login"
+curl -F "file=@image.jpg" -H "Authorization:Bearer " -XPOST "http://pliablepixels.duckdns.org:9988/api/v1/detect/face" 
+
+
+

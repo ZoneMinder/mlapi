@@ -1,0 +1,13 @@
+tinydb
+passlib
+numpy
+opencv-python
+requests
+progressbar
+pillow
+tensorflow
+keras
+cvlib
+flask
+flask_restful
+flast_jwt_extended
