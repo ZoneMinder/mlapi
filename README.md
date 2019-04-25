@@ -14,11 +14,10 @@ Then:
  cd mlapi
  pip install -r requirements.txt
  ```
+Note: You may need other typical ml support libs. Forgot which. Feel free to PR and extend requirements.txt
 
 Running
 ========
-You may need other typical ml support libs. Forgot which. Feel free to PR and extend requirements.txt
-
 To run the server:
 ```
 python ./api.py
@@ -51,6 +50,9 @@ curl -F "file=@1.jpg" -H "Authorization:Bearer ${ACCESS_TOKEN}" -XPOST "http://l
 curl -F "file=@1.jpg" -H "Authorization:Bearer ${ACCESS_TOKEN}" -XPOST "http://localhost:5000/api/v1/detect/object?type=face&gender=true"
 
 ```
+
+Note that the server stores the images and the objects detected inside its `images/` folder. If you want the server to delete them after analysis add `&delete=true" to the query parameters.
+
 
 Sample responses for both of the commands above:
 
