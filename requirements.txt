@@ -1,5 +1,6 @@
 tinydb
 passlib
+bcrypt
 numpy
 opencv_python
 requests

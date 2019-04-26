@@ -1,12 +1,12 @@
 from tinydb import TinyDB, Query, where
-from passlib.hash import sha256_crypt
+from passlib.hash import bcrypt
 import modules.globals as g
 import getpass
 
 class Database:
 
     def _get_hash(self,password):
-        return sha256_crypt.encrypt(password)
+        return bcrypt.hash(password)
     
     def __init__(self):
         self.db = TinyDB(g.DB_NAME)
@@ -42,7 +42,7 @@ class Database:
             return False # user doesn't exist
         stored_password_hash = user_object.get('password')
        
-        if not sha256_crypt.verify(supplied_password, stored_password_hash):
+        if not bcrypt.verify(supplied_password, stored_password_hash):
             g.log.debug ('Hashes do NOT match')
             return False
         else:
