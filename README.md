@@ -76,6 +76,10 @@ Sample responses for both of the commands above:
 
 ```
 
+Full Example
+=============
+Take a look at [stream.py](https://github.com/pliablepixels/mlapi/blob/master/examples/stream.py). This program reads any media source and/or webcam and invokes detection via the API gateway
+
 
 Other Notes
 ============
