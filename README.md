@@ -7,7 +7,7 @@ Technologies
 =============
 - I use  [cvlib](https://github.com/arunponnusamy/cvlib) by @arunponnusamy - easy to use wrapper for object detection
 - Flask/Flask_restful for the API gateway
-- TinyDB with SHA256 for password encryption
+- TinyDB with bcrypt for password encryption
 - flask_jwt_extended for JWT based access tokens
 
 Why
@@ -62,8 +62,6 @@ curl -F "file=@1.jpg" -H "Authorization:Bearer ${ACCESS_TOKEN}" -XPOST "http://l
 
 ```
 
-Note that the server stores the images and the objects detected inside its `images/` folder. If you want the server to delete them after analysis add `&delete=true` to the query parameters.
-
 
 Sample responses for both of the commands above:
 
@@ -77,3 +75,11 @@ Sample responses for both of the commands above:
 00.00%"}]
 
 ```
+
+
+Other Notes
+============
+
+- The first time you invoke a query, the ML engine inside will download weights/models and will take time. That will only happen once and from then on, it will be much faster
+
+- Note that the server stores the images and the objects detected inside its `images/` folder. If you want the server to delete them after analysis add `&delete=true` to the query parameters.
