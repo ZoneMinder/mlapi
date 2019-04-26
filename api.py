@@ -113,7 +113,7 @@ app.config['MAX_CONTENT_LENGTH'] = g.MAX_FILE_SIZE_MB * 1024 * 1024
 app.config['JWT_SECRET_KEY'] = g.SECRET_KEY
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = g.ACCESS_TOKEN_EXPIRES
 app.config['PROPAGATE_EXCEPTIONS'] = True
-app.debug = True
+app.debug = False
 jwt = JWTManager(app)
 
 db = Database.Database()
