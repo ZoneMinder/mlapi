@@ -35,6 +35,8 @@ def upload_file():
             app.config['UPLOAD_FOLDER'], unique_filename)
         file.save(file_with_path_no_ext+'.jpg')
         return file_with_path_no_ext
+    else:
+      abort (500, msg='Bad file type {}'.format(file.filename))
 
 # general argument processing
 
@@ -111,7 +113,7 @@ app.config['MAX_CONTENT_LENGTH'] = g.MAX_FILE_SIZE_MB * 1024 * 1024
 app.config['JWT_SECRET_KEY'] = g.SECRET_KEY
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = g.ACCESS_TOKEN_EXPIRES
 app.config['PROPAGATE_EXCEPTIONS'] = True
-app.debug = False
+app.debug = True
 jwt = JWTManager(app)
 
 db = Database.Database()
