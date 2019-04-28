@@ -1,12 +1,15 @@
 # Example of how you can use the MLAPI gateway
 # with live streams
 
+# Usage:
+# python ./stream.py <local video file>
+# if you leave out local video file, it will open your webcam
 
 import cv2
 import requests
 import json
 import imutils
-
+import sys
 
 #--------- Change to your needs---------------
 BASE_API_URL='http://localhost:5000/api/v1' 
@@ -19,10 +22,8 @@ FRAME_SKIP = 5
 
 # if you want object
 PARAMS = {'delete':'true'}
-
 # If  you want to use webcam
 CAPTURE_SRC=0
-
 # you can also point it to any media URL, like an RTSP one or a file
 #CAPTURE_URL='rtsp://whatever'
 
@@ -31,6 +32,8 @@ CAPTURE_SRC=0
 # CAPTURE_SRC='https://demo.zoneminder.com/cgi-bin-zm/nph-zms?mode=jpeg&maxfps=5&buffer=1000&monitor=18&user=zmuser&pass=zmpass'
 #--------- end ----------------------------
 
+if sys.argv[1]:
+    CAPTURE_SRC=sys.argv[1]
 
 login_url = BASE_API_URL+'/login'
 object_url = BASE_API_URL+'/detect/object'
