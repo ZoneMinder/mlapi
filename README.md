@@ -114,6 +114,11 @@ returns
 ```
 
 
+Live Streams or Recorded Video files
+======================================
+This is an image based object detection API. If you want to pass a video file or live stream,
+take a look at the full example below.
+
 
 Full Example
 =============
