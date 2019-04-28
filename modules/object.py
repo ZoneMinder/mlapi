@@ -11,9 +11,9 @@ class Object:
         g.log.debug('Initialized Object Detection')
 
     # runs yolov3 object detection
-    def detect(self, f, args):
-        fi = f+'.jpg'
-        fo = f+'-object.jpg'
+    def detect(self, f,ext, args):
+        fi = f+ext
+        fo = f+'-object'+ext
         print("Reading {}".format(fi))
         image = cv2.imread(fi)
         bbox, label, conf = cv.detect_common_objects(image)

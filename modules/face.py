@@ -9,9 +9,9 @@ class Face:
     def __init__(self):
         g.log.debug('Initialized Face')
 
-    def detect(self, f, args):
-        fi = f+'.jpg'
-        fo = f+'-face.jpg'
+    def detect(self, f,ext, args):
+        fi = f+ext
+        fo = f+'-face'+ext
         g.log.debug("Reading {}".format(fi))
         image = cv2.imread(fi)
         faces, conf = cv.detect_face(image)
