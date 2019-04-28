@@ -5,6 +5,9 @@ Easy to extend to many/any other model. You can pass images as:
 - a local file
 - remote url
 
+
+<img src="https://media.giphy.com/media/YQ4f1xXHMaDLF7AZMe/giphy.gif"/>
+
 Technologies
 =============
 - I use  [cvlib](https://github.com/arunponnusamy/cvlib) by @arunponnusamy - easy to use wrapper for object detection
