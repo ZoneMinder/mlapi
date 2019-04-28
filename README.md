@@ -20,6 +20,15 @@ Why
 =====
 Wanted to learn how to write an API gateway easily. Object detection was a good use-case since I use it extensively for other things (like my event server). This is the first time I've used flask/jwt/tinydb etc. so its very likely there are improvements that can be made. Feel free to PR.
 
+Tip of the Hat
+===============
+A tip of the hat to [Adrian Rosebrock](https://www.pyimagesearch.com/about/). When I first googled around for a ready made code for this API gateway, I found an old article of his [here](https://www.pyimagesearch.com/2015/05/11/creating-a-face-detection-api-with-python-and-opencv-in-just-5-minutes/). I decided to write my own for the following reasons:
+- His post is 3+ years old, and for an old Django version (doesn't work with new ones)
+- I found Django way too cumbersome to use for an API gateway
+- His example uses haar cascades which at that time was the right choice. But since then, resnet, dlib  etc. came by and did a  superior job on face detection (Especially its CNN mode). As of today, I use cvlib which in turn uses resnet. I'll enable dlib in a few days/weeks too (will be slower...). Or you can PR it :-)
+
+That being said, Adrian's posts have taught me an amazing amount of how to use python for ML. I strongly encourage you to read [his blog](https://www.pyimagesearch.com).
+
 Install
 =======
 - It's best to create a virtual environment with python3 
