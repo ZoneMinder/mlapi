@@ -12,10 +12,10 @@ This is an example of invoking `python ./stream.py video.mp4` ([video courtesy o
 Technologies
 =============
 - I use  [cvlib](https://github.com/arunponnusamy/cvlib) by [@arunponnusamy](https://github.com/arunponnusamy) - easy to use wrapper for object detection
-- Flask/Flask_restful for the API gateway
-- TinyDB with bcrypt for password encryption
-- flask_jwt_extended for JWT based access tokens
-- I looked at Django too - too much to code. I found flask to be much easier and cleaner for this specific purpose
+- [Flask](http://flask.pocoo.org)/[Flask_restful](https://flask-restful.readthedocs.io/en/latest/) for the API gateway
+- [TinyDB](https://tinydb.readthedocs.io/en/latest/) with bcrypt for password encryption
+- [flask_jwt_extended](https://github.com/vimalloc/flask-jwt-extended) for JWT based access tokens
+- I looked at [Django](https://www.djangoproject.com) too - too much to code. I found flask to be much easier and cleaner for this specific purpose
 
 Why
 =====
