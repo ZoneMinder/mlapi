@@ -10,7 +10,7 @@ This is an example of invoking `python ./stream.py video.mp4` ([video courtesy o
 
 Technologies
 =============
-- I use  [cvlib](https://github.com/arunponnusamy/cvlib) by @arunponnusamy - easy to use wrapper for object detection
+- I use  [cvlib](https://github.com/arunponnusamy/cvlib) by [@arunponnusamy](https://github.com/arunponnusamy) - easy to use wrapper for object detection
 - Flask/Flask_restful for the API gateway
 - TinyDB with bcrypt for password encryption
 - flask_jwt_extended for JWT based access tokens
