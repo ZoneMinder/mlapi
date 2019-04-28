@@ -28,7 +28,7 @@ CAPTURE_SRC=0
 
 # If you want to use ZM
 # note your URL may need /cgi-bin/zm/nph-zms - make sure you specify it correctly
-#CAPTURE_SRC='https://demo.zoneminder.com/cgi-bin-zm/nph-zms?mode=jpeg&maxfps=5&buffer=1000&monitor=18&user=zmuser&pass=zmpass'
+# CAPTURE_SRC='https://demo.zoneminder.com/cgi-bin-zm/nph-zms?mode=jpeg&maxfps=5&buffer=1000&monitor=18&user=zmuser&pass=zmpass'
 #--------- end ----------------------------
 
 
