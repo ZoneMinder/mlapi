@@ -12,4 +12,4 @@ keras
 cvlib
 flask
 flask_restful
-flast_jwt_extended
+flask_jwt_extended
