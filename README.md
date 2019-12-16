@@ -49,7 +49,7 @@ Running
 ========
 To run the server:
 ```
-python ./api.py -c config.ini
+python3 ./api.py -c config.ini
 ```
 
 To invoke detection, you need to:
