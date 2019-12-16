@@ -38,7 +38,7 @@ Then:
 ```
  git clone https://github.com/pliablepixels/mlapi
  cd mlapi
- pip install -r requirements.txt
+ pip3 install -r requirements.txt
  ```
 Note: You may need other typical ml support libs. Forgot which. Feel free to PR and extend requirements.txt
 
