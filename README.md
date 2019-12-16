@@ -5,6 +5,8 @@ Easy to extend to many/any other model. You can pass images as:
 - a local file
 - remote url
 
+This can also be used as a remote face/recognition and object recognition server if you are using the ZoneMinder Event Server! (docs upcoming)
+
 This is an example of invoking `python ./stream.py video.mp4` ([video courtesy of pexels](https://www.pexels.com/video/people-walking-by-on-a-sidewalk-854100/))
 
 <img src="https://media.giphy.com/media/YQ4f1xXHMaDLF7AZMe/giphy.gif"/>
