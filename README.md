@@ -31,14 +31,15 @@ That being said, Adrian's posts have taught me an amazing amount of how to use p
 
 Install
 =======
-- It's best to create a virtual environment with python3 
+- It's best to create a virtual environment with python3, but not mandatory 
 - You need python3 for this to run
+- face recognition requires cmake/gcc/standard linux dev libraries installed (if you have gcc, you likely have everything else. You may need to install cmake on top of it if you don't already have it)
 
 Then:
 ```
  git clone https://github.com/pliablepixels/mlapi
  cd mlapi
- pip3 install -r requirements.txt
+ sudo -H pip3 install -r requirements.txt
  ```
 Note: You may need other typical ml support libs. Forgot which. Feel free to PR and extend requirements.txt
 
@@ -46,7 +47,7 @@ Running
 ========
 To run the server:
 ```
-python ./api.py
+python ./api.py -c config.ini
 ```
 
 To invoke detection, you need to:

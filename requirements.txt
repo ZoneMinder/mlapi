@@ -1,6 +1,7 @@
 requests
 Flask_JWT_Extended
 passlib
+bcrypt
 Werkzeug
 tinydb
 opencv_python

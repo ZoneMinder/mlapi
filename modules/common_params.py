@@ -90,9 +90,9 @@ config_vals = {
             'default': 'ball_tree',
             'type': 'string'
         },
-        'known_images_path':{
+        'known_faces_path':{
             'section': 'face',
-            'default': './known_images',
+            'default': './known_faces',
             'type': 'string',
         },
         'unknown_face_name':{

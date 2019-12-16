@@ -11,24 +11,24 @@ import modules.common_params as g
 import face_recognition
 
 def train ():
-    known_images_path=g.config['known_images_path']
+    known_faces_path=g.config['known_faces_path']
     train_model=g.config['face_train_model']
     knn_algo = g.config['face_recog_knn_algo']
     upsample_times = g.config['face_upsample_times']
     num_jitters = g.config['face_num_jitters']
 
-    encoding_file_name = known_images_path+'/faces.dat'
+    encoding_file_name = known_faces_path+'/faces.dat'
     try:
-        if (os.path.isfile(known_images_path+'/faces.pickle')):
+        if (os.path.isfile(known_faces_path+'/faces.pickle')):
             # old version, we no longer want it. begone
             g.logger.debug ('removing old faces.pickle, we have moved to clustering')
-            os.remove (known_images_path+'/faces.pickle')
+            os.remove (known_faces_path+'/faces.pickle')
     except Exception as e:
         g.logger.error('Error deleting old pickle file: {}'.format(e))
             
 
        
-    directory = known_images_path
+    directory = known_faces_path
     ext = ['.jpg', '.jpeg', '.png', '.gif']
     known_face_encodings = []
     known_face_names = []

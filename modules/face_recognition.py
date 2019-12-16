@@ -22,7 +22,7 @@ class Face:
         self.model = model
         self.knn = None
 
-        encoding_file_name = g.config['known_images_path']+'/faces.dat'
+        encoding_file_name = g.config['known_faces_path']+'/faces.dat'
         # to increase performance, read encodings from  file
         if (os.path.isfile(encoding_file_name)):
             g.log.debug ('pre-trained faces found, using that. If you want to add new images, remove: {}'.format(encoding_file_name))
