@@ -10,7 +10,8 @@ images/*.jpg
 **/__pycache__/
 *.so
 *~
-
+known_images/
+models/
 # due to using tox and pytest
 .tox
 .cache

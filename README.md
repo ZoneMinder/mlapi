@@ -11,7 +11,6 @@ This is an example of invoking `python ./stream.py video.mp4` ([video courtesy o
 
 Technologies
 =============
-- I use  [cvlib](https://github.com/arunponnusamy/cvlib) by [@arunponnusamy](https://github.com/arunponnusamy) - easy to use wrapper for object detection
 - [Flask](http://flask.pocoo.org)/[Flask_restful](https://flask-restful.readthedocs.io/en/latest/) for the API gateway
 - [TinyDB](https://tinydb.readthedocs.io/en/latest/) with bcrypt for password encryption
 - [flask_jwt_extended](https://github.com/vimalloc/flask-jwt-extended) for JWT based access tokens
@@ -26,7 +25,7 @@ Tip of the Hat
 A tip of the hat to [Adrian Rosebrock](https://www.pyimagesearch.com/about/). When I first googled around for a ready made code for this API gateway, I found an old article of his [here](https://www.pyimagesearch.com/2015/05/11/creating-a-face-detection-api-with-python-and-opencv-in-just-5-minutes/). I decided to write my own for the following reasons:
 - His post is 3+ years old, and for an old Django version (doesn't work with new ones)
 - I found Django way too cumbersome to use for an API gateway
-- His example uses haar cascades which at that time was the right choice. But since then, resnet, dlib  etc. came by and did a  superior job on face detection (Especially its CNN mode). As of today, I use cvlib which in turn uses resnet. I'll enable dlib in a few days/weeks too (will be slower...). Or you can PR it :-)
+- His example uses haar cascades which at that time was the right choice. But since then, resnet, dlib  etc. came by and did a  superior job on face detection (Especially its CNN mode). I am using dlib here
 
 That being said, Adrian's posts have taught me an amazing amount of how to use python for ML. I strongly encourage you to read [his blog](https://www.pyimagesearch.com).
 
@@ -95,17 +94,16 @@ returns:
 [{"type": "person", "confidence": "99.77%", "box": [2034, 1076, 3030, 2344]}, {"type": "person", "confidence": "97.70%", "box": [463, 519, 1657, 1351]}, {"type": "cup", "confidence": "97.42%", "box": [1642, 978, 1780, 1198]}, {"type": "dining table", "confidence": "95.78%", "box": [636, 1088, 2370, 2262]}, {"type": "person", "confidence": "94.44%", "box": [22, 718, 640, 2292]}, {"type": "person", "confidence": "93.08%", "box": [408, 1002, 1254, 2016]}, {"type": "cup", "confidence": "92.57%", "box":[1918, 1272, 2110, 1518]}, {"type": "cup", "confidence": "90.04%", "box": [1384, 1768, 1564, 2044]}, {"type": "bowl", "confidence": "83.41%", "box": [882, 1760, 1134, 2024]}, {"type": "person", "confidence": "82.64%", "box": [2112, 984, 2508, 1946]}, {"type": "cup", "confidence": "50.14%", "box": [1854, 1520, 2072, 1752]}]
 ```
 
-Face and gender detection for the same image above:
+Face detection for the same image above:
 
 ```
-curl  -H "Authorization: Bearer ${ACCESS_TOKEN}" -XPOST -F"file=@IMG_1833.JPG" "http://localhost:5000/api/v1/detect/object?type=face&gender=true"
+curl  -H "Authorization: Bearer ${ACCESS_TOKEN}" -XPOST -F"file=@IMG_1833.JPG" "http://localhost:5000/api/v1/detect/object?type=face"
 ```
 
 returns:
 
 ```
-[{"type": "face", "confidence": "52.87%", "box": [904, 1037, 1199, 1337], "gender":
-"man", "gender_confidence": "99.98%"}]
+[{"type": "face", "confidence": "52.87%", "box": [904, 1037, 1199, 1337]}]
 ```
 
 Object detection on a live Zoneminder feed:

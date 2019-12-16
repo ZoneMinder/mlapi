@@ -11,16 +11,16 @@ from functools import wraps
 from mimetypes import guess_extension
 
 import os
-import cvlib as cv
-from cvlib.object_detection import draw_bbox
+
 import cv2
 import uuid
 import numpy as np
+import argparse
 
-import modules.face as FaceDetect
-import modules.object as ObjectDetect
-import modules.globals as g
+import modules.common_params as g
 import modules.db as Database
+import modules.utils as utils
+
 
 def file_ext(str):
     f,e = os.path.splitext(str)
@@ -33,12 +33,25 @@ def allowed_ext(ext):
 # Assigns a unique name to the image and saves it locally for analysis
 
 
+def parse_args():
+    parser = reqparse.RequestParser()
+    parser.add_argument('type', location='args',  default=None)
+    parser.add_argument('gender', location='args',
+                        type=inputs.boolean, default=False)
+    parser.add_argument('delete', location='args',
+                        type=inputs.boolean, default=False)
+    parser.add_argument('download', location='args',
+                        type=inputs.boolean, default=False)
+    parser.add_argument('url', default=False)
+    parser.add_argument('file', type=FileStorage, location='files')
+    return parser.parse_args()
+
 def get_file(args):
     unique_filename = str(uuid.uuid4())
     file_with_path_no_ext = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
     ext = None
 
-    print (args)
+   
     # uploaded as multipart data
     if args['file']:
         file = args['file']
@@ -78,32 +91,38 @@ def get_file(args):
 # general argument processing
 
 
-def parse_args():
-    parser = reqparse.RequestParser()
-    parser.add_argument('type', location='args',  default=None)
-    parser.add_argument('gender', location='args',
-                        type=inputs.boolean, default=False)
-    parser.add_argument('delete', location='args',
-                        type=inputs.boolean, default=False)
-    parser.add_argument('download', location='args',
-                        type=inputs.boolean, default=False)
-    parser.add_argument('url', default=False)
-    parser.add_argument('file', type=FileStorage, location='files')
-    return parser.parse_args()
+
 
 
 class Detect(Resource):
     @jwt_required
     def post(self):
         args = parse_args()
+
+        if args['type'] == 'face_names':
+            g.log.debug ('List of face names requested')
+            print (face_obj.get_classes())
+            face_list = {
+                'names': face_obj.get_classes().tolist()
+            }
+            return face_list
+
         if args['type'] == 'face':
-            m = FaceDetect.Face()
+            m = face_obj
+            g.log.debug ('Face Recognition requested')
+           
         elif args['type'] in [None, 'object']:
-            m = ObjectDetect.Object()
+            m = od_obj
+            g.log.debug ('Object Recognition requested')
+            #m = ObjectDetect.Object()
         else:
             abort(400, msg='Invalid Model:{}'.format(args['type']))
         fip,ext = get_file(args)
-        detections = m.detect(fip,ext, args)
+        fi = fip+ext
+        image = cv2.imread(fi)
+        detections = m.detect(image)
+        if args['delete']:
+            os.remove(fi)
         return detections
 
 
@@ -159,6 +178,22 @@ db = Database.Database()
 
 api.add_resource(Login, '/login')
 api.add_resource(Detect, '/detect/object')
+
+ap = argparse.ArgumentParser()
+ap.add_argument('-c', '--config', required=True, help='config file with path')
+args, u = ap.parse_known_args()
+args = vars(args)
+utils.process_config(args)
+utils.download_models()
+
+
+import modules.face_recognition as FaceRecog
+import modules.object as ObjectDetect
+
+face_obj = FaceRecog.Face()
+od_obj = ObjectDetect.Object()
+
+
 
 
 if __name__ == '__main__':

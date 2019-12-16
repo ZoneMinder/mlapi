@@ -1,6 +1,6 @@
 from tinydb import TinyDB, Query, where
 from passlib.hash import bcrypt
-import modules.globals as g
+import modules.common_params as g
 import getpass
 
 class Database:
