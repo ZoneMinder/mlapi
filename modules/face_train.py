@@ -18,13 +18,6 @@ def train ():
     num_jitters = g.config['face_num_jitters']
 
     encoding_file_name = known_faces_path+'/faces.dat'
-    try:
-        if (os.path.isfile(known_faces_path+'/faces.pickle')):
-            # old version, we no longer want it. begone
-            g.logger.debug ('removing old faces.pickle, we have moved to clustering')
-            os.remove (known_faces_path+'/faces.pickle')
-    except Exception as e:
-        g.logger.error('Error deleting old pickle file: {}'.format(e))
             
 
        

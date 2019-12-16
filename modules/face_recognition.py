@@ -31,12 +31,15 @@ class Face:
             #self.known_face_names = data["names"]
         else:
             # no encodings, we have to read and train
-            g.log.debug ('trained file not found, reading from images and doing training...')
-            
-            
+            g.log.debug ('trained file not found, reading from images and doing training...')       
             train.train()
-        with open(encoding_file_name, 'rb') as f:
-            self.knn  = pickle.load(f)
+
+        try:    
+            with open(encoding_file_name, 'rb') as f:
+                self.knn  = pickle.load(f)
+        except Exception as e:
+            g.logger.error('Error loading face recognition file: {}'.format(e))
+
 
 
     def get_classes(self):
