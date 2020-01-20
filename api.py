@@ -9,6 +9,7 @@ from werkzeug.exceptions import HTTPException, default_exceptions
 from werkzeug.datastructures import FileStorage
 from functools import wraps
 from mimetypes import guess_extension
+#from collections import deque 
 
 import os
 
@@ -32,8 +33,8 @@ def allowed_ext(ext):
 
 # Assigns a unique name to the image and saves it locally for analysis
 
-
 def parse_args():
+
     parser = reqparse.RequestParser()
     parser.add_argument('type', location='args',  default=None)
     parser.add_argument('gender', location='args',
@@ -192,9 +193,13 @@ import modules.object as ObjectDetect
 
 face_obj = FaceRecog.Face()
 od_obj = ObjectDetect.Object()
+#q = deque()
 
 
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    g.log.debug ('Starting server with max:{} processes'.format
+    (g.config['processes']))
+    #app.run(host='0.0.0.0', port=5000, threaded=True)
+    app.run(host='0.0.0.0', port=5000, threaded=False, processes=g.config['processes'])

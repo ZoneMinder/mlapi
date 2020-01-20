@@ -17,6 +17,11 @@ config_vals = {
             'default': None,
             'type': 'string',
         },
+        'processes':{
+            'section': 'general',
+            'default': '1',
+            'type': 'int',
+        },
      # YOLO
         'yolo_type':{
             'section':'yolo',
