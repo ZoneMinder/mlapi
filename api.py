@@ -21,6 +21,7 @@ import argparse
 import modules.common_params as g
 import modules.db as Database
 import modules.utils as utils
+from modules.__init__ import __version__
 
 
 def file_ext(str):
@@ -199,7 +200,8 @@ od_obj = ObjectDetect.Object()
 
 
 if __name__ == '__main__':
-    g.log.debug ('Starting server with max:{} processes'.format
+    g.log.info ('--------| mlapi version:{} |--------'.format(__version__))
+    g.log.info ('Starting server with max:{} processes'.format
     (g.config['processes']))
     #app.run(host='0.0.0.0', port=5000, threaded=True)
     app.run(host='0.0.0.0', port=5000, threaded=False, processes=g.config['processes'])
