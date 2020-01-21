@@ -1,8 +1,7 @@
 import modules.log as g_log
 
-DB_NAME='db/db.json'
-SECRET_KEY = 'dont-a-worry-be-happy' # IMPORTANT - change this to your own secret key
-UPLOAD_FOLDER = 'images/'
+
+
 MAX_FILE_SIZE_MB = 5
 ALLOWED_EXTENSIONS = set(['.png', '.jpg', '.jpeg'])
 ACCESS_TOKEN_EXPIRES = 60 * 60  # 1 hr
@@ -21,6 +20,21 @@ config_vals = {
             'section': 'general',
             'default': '1',
             'type': 'int',
+        },
+        'images_path':{
+            'section': 'general',
+            'default': './images',
+            'type': 'string',
+        },
+        'db_path':{
+            'section': 'general',
+            'default': './db',
+            'type': 'string',
+        },
+        'jwt_secret_key':{
+            'section': 'general',
+            'default': None,
+            'type': 'string',
         },
      # YOLO
         'yolo_type':{

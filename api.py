@@ -152,6 +152,13 @@ class Login(Resource):
 
 
 # main init
+
+ap = argparse.ArgumentParser()
+ap.add_argument('-c', '--config', required=True, help='config file with path')
+args, u = ap.parse_known_args()
+args = vars(args)
+utils.process_config(args)
+
 app = Flask(__name__)
 
 def get_http_exception_handler(app):
@@ -168,9 +175,9 @@ def get_http_exception_handler(app):
 app.handle_http_exception = get_http_exception_handler(app)
 
 api = Api(app, prefix='/api/v1')
-app.config['UPLOAD_FOLDER'] = g.UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = g.config['images_path']
 app.config['MAX_CONTENT_LENGTH'] = g.MAX_FILE_SIZE_MB * 1024 * 1024
-app.config['JWT_SECRET_KEY'] = g.SECRET_KEY
+app.config['JWT_SECRET_KEY'] = g.config['jwt_secret_key']
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = g.ACCESS_TOKEN_EXPIRES
 app.config['PROPAGATE_EXCEPTIONS'] = True
 app.debug = False
@@ -180,12 +187,6 @@ db = Database.Database()
 
 api.add_resource(Login, '/login')
 api.add_resource(Detect, '/detect/object')
-
-ap = argparse.ArgumentParser()
-ap.add_argument('-c', '--config', required=True, help='config file with path')
-args, u = ap.parse_known_args()
-args = vars(args)
-utils.process_config(args)
 utils.download_models()
 
 

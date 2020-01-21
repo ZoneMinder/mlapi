@@ -9,7 +9,9 @@ class Database:
         return bcrypt.hash(password)
     
     def __init__(self):
-        self.db = TinyDB(g.DB_NAME)
+        db = g.config['db_path']+'/db.json'
+        g.log.debug ('Opening DB at {}'.format(db))
+        self.db = TinyDB(db)
         self.users = self.db.table('users')
         self.query = Query()
         g.log.debug ('DB engine ready')
