@@ -9,6 +9,7 @@ import imutils
 import math
 import modules.common_params as g
 import modules.face_train as train
+import uuid
 # Class to handle face recognition
 
 class Face:
@@ -81,6 +82,20 @@ class Face:
 
         for pred, loc, rec in zip(self.knn.predict(face_encodings), face_locations, are_matches):
             label = pred if rec else g.config['unknown_face_name']
+            if not rec and g.config['save_unknown_faces'] == 'yes':
+                h,w,c = image.shape
+                x1 = max(loc[3] - g.config['save_unknown_faces_leeway_pixels'],0)
+                y1 = max(loc[0] - g.config['save_unknown_faces_leeway_pixels'],0)
+
+                x2 = min(loc[1]+g.config['save_unknown_faces_leeway_pixels'], w)
+                y2 = min(loc[2]+g.config['save_unknown_faces_leeway_pixels'], h)
+                #print (image)
+                crop_img = image[y1:y2, x1:x2]
+               # crop_img = image
+                unf = g.config['unknown_images_path'] + '/' + str(uuid.uuid4())+'.jpg'
+                g.logger.info ('Saving cropped unknown face at [{},{},{},{} - includes leeway of {}px] to {}'.format(x1,y1,x2,y2,g.config['save_unknown_faces_leeway_pixels'],unf))
+                cv2.imwrite(unf, crop_img)
+                
             matched_face_rects.append((loc[3], loc[0], loc[1], loc[2]))
             matched_face_names.append(label)
             conf.append(1)

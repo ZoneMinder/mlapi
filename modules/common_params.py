@@ -114,11 +114,27 @@ config_vals = {
             'default': './known_faces',
             'type': 'string',
         },
+        'unknown_faces_path':{
+            'section': 'face',
+            'default': './unknown_faces',
+            'type': 'string',
+        },
         'unknown_face_name':{
             'section': 'face',
             'default': 'unknown face',
             'type': 'string',
-        }
+        },
+         'save_unknown_faces':{
+            'section': 'face',
+            'default': 'yes',
+            'type': 'string',
+        },
+
+        'save_unknown_faces_leeway_pixels':{
+            'section': 'face',
+            'default': '50',
+            'type': 'int',
+        },
 
 }
 
