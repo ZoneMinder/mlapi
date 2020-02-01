@@ -106,7 +106,8 @@ class Object:
         for l, c, b in zip(label, conf, bbox):
             c = "{:.2f}%".format(c * 100)
             obj = {
-                'type': l,
+                'type': 'object',
+                'label': l,
                 'confidence': c,
                 'box': b
             }

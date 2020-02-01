@@ -106,7 +106,8 @@ class Face:
         for l, c, b in zip(matched_face_names, conf, matched_face_rects):
             c = "{:.2f}%".format(c * 100)
             obj = {
-                'type': l,
+                'type':'object',
+                'label': l,
                 'confidence': c,
                 'box': b
             }
