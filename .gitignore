@@ -11,6 +11,7 @@ images/*.jpg
 *.so
 *~
 known_faces/*
+unknown_face/*
 !known_faces/README.md
 models/
 # due to using tox and pytest
