@@ -11,6 +11,7 @@ import modules.common_params as g
 import modules.face_train as train
 import uuid
 import time
+import datetime
 # Class to handle face recognition
 
 class Face:
@@ -58,6 +59,10 @@ class Face:
         return rects
 
     def detect(self, image):
+
+        Height, Width = image.shape[:2]
+        g.logger.debug ('|---------- Face recognition (input image: {}w*{}h) ----------|'.format(Width,Height))
+
         labels = []
         classes = []
         conf = []
@@ -67,16 +72,27 @@ class Face:
         #rgb_image = image
 
         # Find all the faces and face encodings in the target image
+        start = datetime.datetime.now()
         face_locations = face_recognition.face_locations(rgb_image, model=self.model, number_of_times_to_upsample=self.upsample_times)
+        diff_time = (datetime.datetime.now() - start).microseconds/1000
+        g.logger.debug ('Finding faces took {} milliseconds'.format(diff_time))
+
+        start = datetime.datetime.now()
         face_encodings = face_recognition.face_encodings(rgb_image, known_face_locations=face_locations, num_jitters=self.num_jitters)
+        diff_time = (datetime.datetime.now() - start).microseconds/1000
+        g.logger.debug ('Computing face recognition distances took {} milliseconds'.format(diff_time))
         
+
         if not len(face_encodings):
             g.log.debug ('Face recognition: no faces found')
             return [],[],[]
 
         # Use the KNN model to find the best matches for the test face
+        start = datetime.datetime.now()
         closest_distances = self.knn.kneighbors(face_encodings, n_neighbors=1)
         are_matches = [closest_distances[0][i][0] <= g.config['face_recog_dist_threshold'] for i in range(len(face_locations))]
+        diff_time = (datetime.datetime.now() - start).microseconds/1000
+        g.logger.debug ('Matching recognized faces to known faces took {} milliseconds'.format(diff_time))
 
         matched_face_names = []
         matched_face_rects = []

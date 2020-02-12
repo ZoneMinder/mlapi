@@ -36,7 +36,15 @@ config_vals = {
             'default': None,
             'type': 'string',
         },
-     # YOLO
+
+        # General ML
+        'use_opencv_dnn_cuda':{
+            'section':'ml',
+            'default':'no',
+            'type':'string'
+
+        },
+        # YOLO
         'yolo_type':{
             'section':'yolo',
             'default':'full',
@@ -78,7 +86,7 @@ config_vals = {
             'default': './models/tinyyolo/yolov3-tiny.txt',
             'type': 'string'
         },
-         # Face
+        # Face
         'face_num_jitters':{
             'section': 'face',
             'default': '0',
