@@ -11,12 +11,6 @@ This is an example of invoking `python ./stream.py video.mp4` ([video courtesy o
 
 <img src="https://media.giphy.com/media/YQ4f1xXHMaDLF7AZMe/giphy.gif"/>
 
-Technologies
-=============
-- [Flask](http://flask.pocoo.org)/[Flask_restful](https://flask-restful.readthedocs.io/en/latest/) for the API gateway
-- [TinyDB](https://tinydb.readthedocs.io/en/latest/) with bcrypt for password encryption
-- [flask_jwt_extended](https://github.com/vimalloc/flask-jwt-extended) for JWT based access tokens
-- I looked at [Django](https://www.djangoproject.com) too - too much to code. I found flask to be much easier and cleaner for this specific purpose
 
 Why
 =====
@@ -24,12 +18,7 @@ Wanted to learn how to write an API gateway easily. Object detection was a good 
 
 Tip of the Hat
 ===============
-A tip of the hat to [Adrian Rosebrock](https://www.pyimagesearch.com/about/). When I first googled around for a ready made code for this API gateway, I found an old article of his [here](https://www.pyimagesearch.com/2015/05/11/creating-a-face-detection-api-with-python-and-opencv-in-just-5-minutes/). I decided to write my own for the following reasons:
-- His post is 3+ years old, and for an old Django version (doesn't work with new ones)
-- I found Django way too cumbersome to use for an API gateway
-- His example uses haar cascades which at that time was the right choice. But since then, resnet, dlib  etc. came by and did a  superior job on face detection (Especially its CNN mode). I am using dlib here
-
-That being said, Adrian's posts have taught me an amazing amount of how to use python for ML. I strongly encourage you to read [his blog](https://www.pyimagesearch.com).
+A tip of the hat to [Adrian Rosebrock](https://www.pyimagesearch.com/about/) to get me started. His articles are great.
 
 Install
 =======
@@ -44,6 +33,9 @@ Then:
  sudo -H pip3 install -r requirements.txt
  ```
 Note: You may need other typical ml support libs. Forgot which. Feel free to PR and extend requirements.txt
+
+Note that this package also needs OpenCV which is not installed by the above step by default. This is because you may have a GPU and may want to use GPU support. If not, pip is fine. See [this page](https://zmeventnotification.readthedocs.io/en/latest/guides/hooks.html#opencv-install) on how to install OpenCV
+
 
 Running
 ========

@@ -4,7 +4,6 @@ passlib
 bcrypt
 Werkzeug
 tinydb
-opencv_python
 imutils
 numpy
 Flask_RESTful
