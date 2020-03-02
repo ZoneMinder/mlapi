@@ -1,0 +1,39 @@
+# This is a systemd startup file if you are on a system that
+# supports systemd and you want mlapi to work as an always 
+# on service
+
+# Please make sure you run mlapi manually first
+# to create a user/password for access and then enable
+# this service
+
+# To make this persistent
+# sudo cp mlapi.service /etc/systemd/system
+# sudo systemctl enable mlapi.service
+# sudo chmod 644 /etc/systemd/system/mlapi.service
+# sudo systemctl enable mlapi
+
+[Unit]
+Description=Machine Learning API service
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+# We need this to get logs correctly
+Environment=PYTHONUNBUFFERED=1
+
+# change this 
+WorkingDirectory=/var/lib/zmeventnotification/mlapi
+# Change to your username
+User=www-data
+#Change paths if needed
+ExecStart=/usr/bin/python3 mlapi.py -c ./mlapiconfig.ini
+
+
+StandardOutput=file:/var/log/zm/mlapi.log
+StandardError=file:/var/log/zm/mlapi_error.log
+
+[Install]
+WantedBy=multi-user.target

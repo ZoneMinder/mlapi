@@ -31,7 +31,7 @@ config_vals = {
             'default': './db',
             'type': 'string',
         },
-        'jwt_secret_key':{
+        'mlapi_secret_key':{
             'section': 'general',
             'default': None,
             'type': 'string',

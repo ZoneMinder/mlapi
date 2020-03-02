@@ -177,7 +177,8 @@ app.handle_http_exception = get_http_exception_handler(app)
 api = Api(app, prefix='/api/v1')
 app.config['UPLOAD_FOLDER'] = g.config['images_path']
 app.config['MAX_CONTENT_LENGTH'] = g.MAX_FILE_SIZE_MB * 1024 * 1024
-app.config['JWT_SECRET_KEY'] = g.config['jwt_secret_key']
+app.config['JWT_SECRET_KEY'] = g.config['mlapi_secret_key']
+print (g.config['mlapi_secret_key'])
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = g.ACCESS_TOKEN_EXPIRES
 app.config['PROPAGATE_EXCEPTIONS'] = True
 app.debug = False
