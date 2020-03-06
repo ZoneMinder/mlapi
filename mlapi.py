@@ -150,6 +150,12 @@ class Login(Resource):
         response.status_code = 200
         return response
 
+# implement a basic health check.
+class Health(Resource):
+    def get(self):
+        response = jsonify("ok")
+        response.status_code = 200
+        return response
 
 # main init
 
@@ -187,6 +193,7 @@ db = Database.Database()
 
 api.add_resource(Login, '/login')
 api.add_resource(Detect, '/detect/object')
+api.add_resource(Health, '/health')
 utils.download_models()
 
 
