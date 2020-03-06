@@ -21,6 +21,11 @@ config_vals = {
             'default': '1',
             'type': 'int',
         },
+        'port':{
+            'section': 'general',
+            'default': '5000',
+            'type': 'int',
+        },
         'images_path':{
             'section': 'general',
             'default': './images',

@@ -178,7 +178,6 @@ api = Api(app, prefix='/api/v1')
 app.config['UPLOAD_FOLDER'] = g.config['images_path']
 app.config['MAX_CONTENT_LENGTH'] = g.MAX_FILE_SIZE_MB * 1024 * 1024
 app.config['JWT_SECRET_KEY'] = g.config['mlapi_secret_key']
-print (g.config['mlapi_secret_key'])
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = g.ACCESS_TOKEN_EXPIRES
 app.config['PROPAGATE_EXCEPTIONS'] = True
 app.debug = False
@@ -206,4 +205,4 @@ if __name__ == '__main__':
     g.log.info ('Starting server with max:{} processes'.format
     (g.config['processes']))
     #app.run(host='0.0.0.0', port=5000, threaded=True)
-    app.run(host='0.0.0.0', port=5000, threaded=False, processes=g.config['processes'])
+    app.run(host='0.0.0.0', port=g.config['port'], threaded=False, processes=g.config['processes'])
