@@ -2,7 +2,7 @@
 # with live streams
 
 # Usage:
-# python ./stream.py <local video file>
+# python3 ./stream.py <local video file>
 # if you leave out local video file, it will open your webcam
 
 import cv2

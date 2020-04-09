@@ -47,7 +47,7 @@ python3 ./mlapi.py -c mlapiconfig.ini
 To invoke detection, you need to:
 
 Server Side:
-- Make sure the username and password are created. Use `python mlapi_adduser.py` for that
+- Make sure the username and password are created. Use `python3 mlapi_adduser.py` for that
 
 Client Side:
 
