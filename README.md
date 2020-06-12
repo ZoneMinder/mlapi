@@ -20,6 +20,10 @@ Tip of the Hat
 ===============
 A tip of the hat to [Adrian Rosebrock](https://www.pyimagesearch.com/about/) to get me started. His articles are great.
 
+Containerized Fork
+==================
+themoosman maintains a containerized fork of this [repo](https://github.com/themoosman/mlapi).  This fork runs as a container and has been refactored to a WSGI (NGINX + Gunicorn + Flask) application.
+
 Install
 =======
 - It's best to create a virtual environment with python3, but not mandatory 
