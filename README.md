@@ -22,7 +22,7 @@ A tip of the hat to [Adrian Rosebrock](https://www.pyimagesearch.com/about/) to 
 
 Containerized Fork
 ==================
-themoosman maintains a containerized fork of this [repo](https://github.com/themoosman/mlapi).  This fork runs as a container and has been refactored to a WSGI (NGINX + Gunicorn + Flask) application. Please **do not** post questions about his containerized fork here. Please post issues in this fork.
+themoosman maintains a containerized fork of this [repo](https://github.com/themoosman/mlapi).  This fork runs as a container and has been refactored to a WSGI (NGINX + Gunicorn + Flask) application. Please **do not** post questions about his containerized fork here. Please post issues in his fork.
 
 Install
 =======
