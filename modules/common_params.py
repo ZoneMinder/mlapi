@@ -42,56 +42,55 @@ config_vals = {
             'type': 'string',
         },
 
-        # General ML
-        'use_opencv_dnn_cuda':{
-            'section':'ml',
-            'default':'no',
-            'type':'string'
-
+         'max_detection_size':{
+            'section': 'general',
+            'default': '100%',
+            'type': 'string',
         },
-        # YOLO
-        'yolo_type':{
-            'section':'yolo',
-            'default':'full',
-            'type':'string'
 
+       'object_framework':{
+            'section': 'object',
+            'default': 'opencv',
+            'type': 'string'
         },
-        'yolo_min_confidence': {
-            'section': 'yolo',
+        'object_processor':{
+            'section': 'object',
+            'default': 'cpu',
+            'type': 'string'
+        },
+        'object_config':{
+            'section': 'object',
+            'default': 'models/yolov3/yolov3.cfg',
+            'type': 'string'
+        },
+        'object_weights':{
+            'section': 'object',
+            'default': 'models/yolov3/yolov3.weights',
+            'type': 'string'
+        },
+        'object_labels':{
+            'section': 'object',
+            'default': 'models/yolov3/yolov3_classes.txt',
+            'type': 'string'
+        },
+       
+
+        'object_min_confidence': {
+            'section': 'object',
             'default': '0.4',
             'type': 'float'
         },
-        'config':{
-            'section': 'yolo',
-            'default': './models/yolov3/yolov3.cfg',
-            'type': 'string'
-        },
-        'weights':{
-            'section': 'yolo',
-            'default': './models/yolov3/yolov3.weights',
-            'type': 'string'
-        },
-        'labels':{
-            'section': 'yolo',
-            'default': './models/yolov3/yolov3_classes.txt',
-            'type': 'string'
-        },
-        'tiny_config':{
-            'section': 'yolo',
-            'default': './models/tinyyolo/yolov3-tiny.cfg',
-            'type': 'string'
-        },
-        'tiny_weights':{
-            'section': 'yolo',
-            'default': './models/tinyyolo/yolov3-tiny.weights',
-            'type': 'string'
-        },
-        'tiny_labels':{
-            'section': 'yolo',
-            'default': './models/tinyyolo/yolov3-tiny.txt',
-            'type': 'string'
-        },
         # Face
+        'face_detection_framework':{
+            'section': 'face',
+            'default': 'dlib',
+            'type': 'string'
+        },
+        'face_recognition_framework':{
+            'section': 'face',
+            'default': 'dlib',
+            'type': 'string'
+        },
         'face_num_jitters':{
             'section': 'face',
             'default': '0',
@@ -122,12 +121,12 @@ config_vals = {
             'default': 'ball_tree',
             'type': 'string'
         },
-        'known_faces_path':{
+        'known_images_path':{
             'section': 'face',
             'default': './known_faces',
             'type': 'string',
         },
-        'unknown_faces_path':{
+        'unknown_images_path':{
             'section': 'face',
             'default': './unknown_faces',
             'type': 'string',

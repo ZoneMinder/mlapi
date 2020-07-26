@@ -29,6 +29,11 @@ Install
 - It's best to create a virtual environment with python3, but not mandatory 
 - You need python3 for this to run
 - face recognition requires cmake/gcc/standard linux dev libraries installed (if you have gcc, you likely have everything else. You may need to install cmake on top of it if you don't already have it)
+- If you plan on using Tiny/Yolo V4, You need Open CV > 4.3
+- If you plan on using EdgeTPU, please make sure you have all the libs
+  installed as per https://coral.ai/docs/accelerator/get-started/ including `sudo apt-get install python3-edgetpu`
+
+Note that this package also needs OpenCV which is not installed by the above step by default. This is because you may have a GPU and may want to use GPU support. If not, pip is fine. See [this page](https://zmeventnotification.readthedocs.io/en/latest/guides/hooks.html#opencv-install) on how to install OpenCV
 
 Then:
 ```
@@ -36,9 +41,21 @@ Then:
  cd mlapi
  sudo -H pip3 install -r requirements.txt
  ```
-Note: You may need other typical ml support libs. Forgot which. Feel free to PR and extend requirements.txt
 
-Note that this package also needs OpenCV which is not installed by the above step by default. This is because you may have a GPU and may want to use GPU support. If not, pip is fine. See [this page](https://zmeventnotification.readthedocs.io/en/latest/guides/hooks.html#opencv-install) on how to install OpenCV
+Finally, you also need to get the inferencing models
+
+To download all models, except coral edgetpu models:
+```
+./get_models.sh
+```
+
+To download all models, including coral edge tpu models:
+(Coral needs the coral device, so it is not downloaded by default):
+```
+INSTALL_CORAL_EDGETPU=yes ./get_models.sh
+```
+
+**Please make sure you edit `mlapiconfig.ini` to meet your needs**
 
 
 Running

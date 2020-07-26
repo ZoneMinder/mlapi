@@ -1,13 +1,14 @@
 requests
-Flask_JWT_Extended
 passlib
 bcrypt
 Werkzeug
 tinydb
 imutils
 numpy
-Flask_RESTful
-Flask
+flask_jwt_extended
+flask_restful
+flask
 progressbar33
 scikit_learn
 face_recognition
+pyzm

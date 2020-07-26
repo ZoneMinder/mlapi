@@ -122,7 +122,20 @@ class Detect(Resource):
         fip,ext = get_file(args)
         fi = fip+ext
         image = cv2.imread(fi)
-        detections = m.detect(image)
+        bbox,label,conf = m.detect(image)
+
+        detections=[]
+        for l, c, b in zip(label, conf, bbox):
+            c = "{:.2f}%".format(c * 100)
+            obj = {
+                'type': 'object',
+                'label': l,
+                'confidence': c,
+                'box': b
+            }
+            detections.append(obj)
+
+        return detections
         if args['delete']:
             os.remove(fi)
         return detections
@@ -194,14 +207,13 @@ db = Database.Database()
 api.add_resource(Login, '/login')
 api.add_resource(Detect, '/detect/object')
 api.add_resource(Health, '/health')
-utils.download_models()
 
 
-import modules.face_recognition as FaceRecog
-import modules.object as ObjectDetect
+import pyzm.ml.face  as FaceRecog
+import pyzm.ml.object as  ObjectDetect
 
-face_obj = FaceRecog.Face()
-od_obj = ObjectDetect.Object()
+face_obj = FaceRecog.Face(options=g.config)
+od_obj = ObjectDetect.Object(options=g.config)
 #q = deque()
 
 

@@ -91,76 +91,9 @@ def process_config(args):
         g.logger.error('Error was:{}'.format(e))
         exit(0)
 
-def download_models():
-    if g.config['yolo_type'] == 'tiny':
-        config_file_abs_path = g.config['tiny_config']
-        weights_file_abs_path = g.config['tiny_weights']
-        labels_file_abs_path = g.config['tiny_labels']
-
-        if not os.path.exists(weights_file_abs_path):
-            (p,f) = os.path.split(weights_file_abs_path)
-            download_file('https://pjreddie.com/media/files/yolov3-tiny.weights',f,p)
-        if not os.path.exists(config_file_abs_path):
-            (p,f) = os.path.split(weights_file_abs_path)
-            download_file('https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3-tiny.cfg',f,p)
-        if not os.path.exists(labels_file_abs_path):
-            (p,f) = os.path.split(labels_file_abs_path)
-            download_file('https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names',f,p)
-    
-    else:
-        config_file_abs_path = g.config['config']
-        weights_file_abs_path = g.config['weights']
-        labels_file_abs_path = g.config['labels']
-        
-        if not os.path.exists(weights_file_abs_path):
-            (p,f) = os.path.split(weights_file_abs_path)
-            download_file('https://pjreddie.com/media/files/yolov3.weights',f,p)
-        if not os.path.exists(config_file_abs_path):
-            (p,f) = os.path.split(config_file_abs_path)
-            download_file('https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3.cfg',f,p)
-        if not os.path.exists(labels_file_abs_path):
-            (p,f) = os.path.split(labels_file_abs_path)
-            download_file('https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names',f,p)
 
 
-# credit: https://github.com/arunponnusamy/cvlib/blob/master/cvlib/utils.py
-def download_file(url, file_name, dest_dir):
 
-    if not os.path.exists(dest_dir):
-        os.makedirs(dest_dir)
-
-    full_path_to_file = dest_dir + os.path.sep + file_name
-
-    if os.path.exists(dest_dir + os.path.sep + file_name):
-        return full_path_to_file
-
-    print("Downloading " + file_name + " from " + url)
-
-    try:
-        r = requests.get(url, allow_redirects=True, stream=True)
-    except:
-        print("Could not establish connection. Download failed")
-        return None
-
-    file_size = int(r.headers['Content-Length'])
-    chunk_size = 1024
-    num_bars = round(file_size / chunk_size)
-
-    bar = pb.ProgressBar(maxval=num_bars).start()
-    
-    if r.status_code != requests.codes.ok:
-        print("Error occurred while downloading file")
-        return None
-
-    count = 0
-    
-    with open(full_path_to_file, 'wb') as file:
-        for chunk in  r.iter_content(chunk_size=chunk_size):
-            file.write(chunk)
-            bar.update(count)
-            count +=1
-
-    return full_path_to_file
 
 def draw_bbox(img, bbox, labels, classes, confidence, color=None, write_conf=True):
 
