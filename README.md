@@ -1,6 +1,6 @@
 What
 =====
-An API gateway that you can install in your own server to do object, face and gender recognition.
+An API gateway that you can install in your own server to do object and face recognition.
 Easy to extend to many/any other model. You can pass images as:
 - a local file
 - remote url

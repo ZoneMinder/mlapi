@@ -17,8 +17,8 @@ USER='pp'
 PASSWORD='abc123' 
 FRAME_SKIP = 5 
 
-# if you want face and gender
-#PARAMS = {'delete':'true', 'type':'face', 'gender':'true'}
+# if you want face 
+#PARAMS = {'delete':'true', 'type':'face'}
 
 # if you want object
 PARAMS = {'delete':'true'}
@@ -61,9 +61,7 @@ def draw_boxes(frame,data):
   for item in data:
      bbox = item.get('box')
      label = item.get('type')
-     gender = item.get('gender')
-     if gender:
-      label = label + ', '+gender
+     
      cv2.rectangle(frame, (bbox[0],bbox[1]), (bbox[2],bbox[3]), color, 2)
      cv2.putText(frame, label, (bbox[0],bbox[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 

@@ -38,8 +38,6 @@ def parse_args():
 
     parser = reqparse.RequestParser()
     parser.add_argument('type', location='args',  default=None)
-    parser.add_argument('gender', location='args',
-                        type=inputs.boolean, default=False)
     parser.add_argument('delete', location='args',
                         type=inputs.boolean, default=False)
     parser.add_argument('download', location='args',
@@ -211,9 +209,11 @@ api.add_resource(Health, '/health')
 
 import pyzm.ml.face  as FaceRecog
 import pyzm.ml.object as  ObjectDetect
+import pyzm.ml.alpr as Alpr
 
 face_obj = FaceRecog.Face(options=g.config)
 od_obj = ObjectDetect.Object(options=g.config)
+alpr_obj = Alpr.Alpr(options=g.config)
 #q = deque()
 
 
