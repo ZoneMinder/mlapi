@@ -18,3 +18,4 @@ models/
 .tox
 .cache
 models/*
+secrets.mine

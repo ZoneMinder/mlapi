@@ -148,5 +148,108 @@ config_vals = {
             'type': 'int',
         },
 
+        #  ALPR
+
+        'alpr_service': {
+            'section': 'alpr',
+            'default': 'plate_recognizer',
+            'type': 'string',
+        },
+        'alpr_url': {
+            'section': 'alpr',
+            'default': None,
+            'type': 'string',
+        },
+        'alpr_key': {
+            'section': 'alpr',
+            'default': '',
+            'type': 'string',
+        },
+        'alpr_use_after_detection_only': {
+            'section': 'alpr',
+            'type': 'string',
+            'default': 'yes',
+        },
+
+         'alpr_pattern':{
+            'section': 'general',
+            'default': '.*',
+            'type': 'string'
+        },
+        'alpr_api_type':{
+            'section': 'alpr',
+            'default': 'cloud',
+            'type': 'string'
+        },
+
+        # Plate recognition specific
+        'platerec_stats':{
+            'section': 'alpr',
+            'default': 'no',
+            'type': 'string'
+        },
+
+       
+        'platerec_regions':{
+            'section': 'alpr',
+            'default': None,
+            'type': 'eval'
+        },
+        'platerec_min_dscore':{
+            'section': 'alpr',
+            'default': '0.3',
+            'type': 'float'
+        },
+       
+        'platerec_min_score':{
+            'section': 'alpr',
+            'default': '0.5',
+            'type': 'float'
+        },
+
+        # OpenALPR specific
+        'openalpr_recognize_vehicle':{
+            'section': 'alpr',
+            'default': '0',
+            'type': 'int'
+        },
+        'openalpr_country':{
+            'section': 'alpr',
+            'default': 'us',
+            'type': 'string'
+        },
+        'openalpr_state':{
+            'section': 'alpr',
+            'default': None,
+            'type': 'string'
+        },
+
+        'openalpr_min_confidence': {
+            'section': 'alpr',
+            'default': '0.3',
+            'type': 'float'
+        },
+
+        # OpenALPR command line specfic
+
+         'openalpr_cmdline_binary':{
+            'section': 'alpr',
+            'default': 'alpr',
+            'type': 'string'
+        },
+        
+         'openalpr_cmdline_params':{
+            'section': 'alpr',
+            'default': '-j',
+            'type': 'string'
+        },
+        'openalpr_cmdline_min_confidence': {
+            'section': 'alpr',
+            'default': '0.3',
+            'type': 'float'
+        },
+       
+
+
 }
 

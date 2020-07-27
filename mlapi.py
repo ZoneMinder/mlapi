@@ -110,7 +110,11 @@ class Detect(Resource):
         if args['type'] == 'face':
             m = face_obj
             g.log.debug ('Face Recognition requested')
-           
+        
+        if args['type'] == 'alpr':
+            m = alpr_obj
+            g.log.debug ('ALPR requested')
+
         elif args['type'] in [None, 'object']:
             m = od_obj
             g.log.debug ('Object Recognition requested')
