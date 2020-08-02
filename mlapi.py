@@ -111,7 +111,7 @@ class Detect(Resource):
             m = face_obj
             g.log.debug ('Face Recognition requested')
         
-        if args['type'] == 'alpr':
+        elif args['type'] == 'alpr':
             m = alpr_obj
             g.log.debug ('ALPR requested')
 

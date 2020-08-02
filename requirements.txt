@@ -11,4 +11,5 @@ flask
 progressbar33
 scikit_learn
 face_recognition
-pyzm
+pyzm>=0.1.20
+portalocker
