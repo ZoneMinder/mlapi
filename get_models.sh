@@ -1,9 +1,8 @@
 #!/bin/bash
 
 #-----------------------------------------------------
-# Install script for mlapi and the 
-
-# /install.sh 
+# Download required ML models
+#
 #
 #-----------------------------------------------------
 
