@@ -13,3 +13,4 @@ scikit_learn
 face_recognition
 pyzm>=0.1.22
 portalocker
+bjoern

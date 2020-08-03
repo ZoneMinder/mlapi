@@ -17,6 +17,7 @@ import cv2
 import uuid
 import numpy as np
 import argparse
+import bjoern
 
 import modules.common_params as g
 import modules.db as Database
@@ -228,4 +229,5 @@ if __name__ == '__main__':
     g.log.info ('Starting server with max:{} processes'.format
     (g.config['processes']))
     #app.run(host='0.0.0.0', port=5000, threaded=True)
-    app.run(host='0.0.0.0', port=g.config['port'], threaded=False, processes=g.config['processes'])
+    #app.run(host='0.0.0.0', port=g.config['port'], threaded=False, processes=g.config['processes'])
+    bjoern.run(app,host='0.0.0.0',port=g.config['port'])
