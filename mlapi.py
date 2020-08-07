@@ -137,7 +137,6 @@ class Detect(Resource):
             }
             detections.append(obj)
 
-        return detections
         if args['delete']:
             os.remove(fi)
         return detections
