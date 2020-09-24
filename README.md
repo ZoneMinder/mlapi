@@ -20,9 +20,31 @@ Tip of the Hat
 ===============
 A tip of the hat to [Adrian Rosebrock](https://www.pyimagesearch.com/about/) to get me started. His articles are great.
 
+Running in a Docker container
+=============================
+A simple `Dockerfile` is included with this project. It is preconfigured for *YOLOv4* model but can easily be changed to use any other available models.
+
+To build it run:
+
+```
+git clone https://github.com/pliablepixels/mlapi.git
+cd mlapi
+docker build -t mlapi:local .
+```
+
+Once built you can run the container:
+
+```
+docker run --rm -it -e MLAPI_USER="myuser" -e MLAPI_PASSWORD="Passw0rd" -p 5000:5000 mlapi:local
+```
+
+To quickly test it run `curl http://localhost:5000/api/v1/health`, then follow the instructions below under the *Running* section.
+
 Containerized Fork
-==================
-themoosman maintains a containerized fork of this [repo](https://github.com/themoosman/mlapi).  This fork runs as a container and has been refactored to a WSGI (NGINX + Gunicorn + Flask) application. Please **do not** post questions about his containerized fork here. Please post issues in his fork.
+------------------
+[@themoosman](https://github.com/themoosman) maintains a [containerized fork of this mlapi](https://github.com/themoosman/mlapi).
+
+This fork has been refactored to a WSGI (NGINX + Gunicorn + Flask) application. Please **do not** post questions about his containerized fork here. Please post issues in his fork.
 
 Install
 =======
@@ -37,7 +59,7 @@ Note that this package also needs OpenCV which is not installed by the above ste
 
 Then:
 ```
- git clone https://github.com/pliablepixels/mlapi
+ git clone https://github.com/pliablepixels/mlapi.git
  cd mlapi
  sudo -H pip3 install -r requirements.txt
  ```
