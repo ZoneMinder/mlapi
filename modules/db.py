@@ -1,3 +1,4 @@
+import os
 from tinydb import TinyDB, Query, where
 from passlib.hash import bcrypt
 import modules.common_params as g
@@ -16,24 +17,27 @@ class Database:
         self.query = Query()
         g.log.debug ('DB engine ready')
         if not len(self.users):
-            g.log.debug ('Initializing default users')
-
             print ('--------------- User Creation ------------')
-            print ('Please configure atleast one user:')
-            while True:
-                name = input ('user name:')
-                if not name:
-                    print ('Error: username needed')
-                    continue
-                p1 = getpass.getpass('Please enter password:')
-                if not p1:
-                    print ('Error: password cannot be empty')
-                    continue
-                p2 = getpass.getpass('Please re-enter password:')
-                if  p1 != p2:
-                    print ('Passwords do not match, please re-try')
-                    continue
-                break  
+            if os.getenv('MLAPI_USER') and os.getenv('MLAPI_PASSWORD'):
+                name = os.getenv('MLAPI_USER')
+                p1 = os.getenv('MLAPI_PASSWORD')
+                g.log.debug('Creating user from $MLAPI_USER: {}'.format(name))
+            else:
+                print ('Please configure at least one user:')
+                while True:
+                    name = input ('User name:')
+                    if not name:
+                        print ('Error: username needed')
+                        continue
+                    p1 = getpass.getpass('Please enter password:')
+                    if not p1:
+                        print ('Error: password cannot be empty')
+                        continue
+                    p2 = getpass.getpass('Please re-enter password:')
+                    if  p1 != p2:
+                        print ('Passwords do not match, please re-try')
+                        continue
+                    break
             self.users.insert({'name':name, 'password':self._get_hash(p1)})
             print ('------- User: {} created ----------------'.format(name))
 
