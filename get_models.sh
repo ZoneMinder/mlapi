@@ -18,7 +18,7 @@ INSTALL_TINYYOLOV4=${INSTALL_TINYYOLOV4:-yes}
 INSTALL_CORAL_EDGETPU=${INSTALL_CORAL_EDGETPU:-no}
 
 TARGET_DIR='./models'
-WGET=$(which wget)
+WGET="$(which wget) --progress=bar:force:noscroll"
 
 # utility functions for color coded pretty printing
 print_error() {
