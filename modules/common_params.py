@@ -1,3 +1,4 @@
+import os
 import modules.log as g_log
 
 
@@ -71,7 +72,7 @@ config_vals = {
         },
         'mlapi_secret_key':{
             'section': 'general',
-            'default': None,
+            'default': os.getenv('MLAPI_SECRET_KEY'),
             'type': 'string',
         },
 
@@ -195,7 +196,7 @@ config_vals = {
         },
         'alpr_key': {
             'section': 'alpr',
-            'default': '',
+            'default': os.getenv('MLAPI_ALPR_KEY'),
             'type': 'string',
         },
         'alpr_use_after_detection_only': {
