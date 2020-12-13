@@ -23,6 +23,10 @@ import modules.db as Database
 import modules.utils as utils
 from modules.__init__ import __version__
 
+from pyzm.ml.detect_sequence import DetectSequence
+import pyzm.helpers.utils as pyzmutils
+
+
 
 def file_ext(str):
     f,e = os.path.splitext(str)
@@ -108,15 +112,12 @@ class Detect(Resource):
             return face_list
 
         if args['type'] == 'face':
-            m = face_obj
             g.log.Debug (1,'Face Recognition requested')
         
         elif args['type'] == 'alpr':
-            m = alpr_obj
             g.log.Debug (1,'ALPR requested')
 
         elif args['type'] in [None, 'object']:
-            m = od_obj
             g.log.Debug (1,'Object Recognition requested')
             #m = ObjectDetect.Object()
         else:
@@ -124,7 +125,11 @@ class Detect(Resource):
         fip,ext = get_file(args)
         fi = fip+ext
         image = cv2.imread(fi)
-        bbox,label,conf = m.detect(image)
+        #bbox,label,conf = m.detect(image)
+        matched_data,all_data = m.detect_stream(stream=fi, options=stream_options)
+        bbox = matched_data['boxes']
+        label = matched_data['labels']
+        conf = matched_data['confidences']
 
         detections=[]
         for l, c, b in zip(label, conf, bbox):
@@ -209,14 +214,78 @@ api.add_resource(Login, '/login')
 api.add_resource(Detect, '/detect/object')
 api.add_resource(Health, '/health')
 
+secrets_conf = pyzmutils.read_config('./secrets.mine')
+g.log.set_level(5)
+ml_options = {
+    'general': {
+        'model_sequence': 'object,face,alpr',
 
-import pyzm.ml.face  as FaceRecog
-import pyzm.ml.object as  ObjectDetect
-import pyzm.ml.alpr as Alpr
+    },
+   
+    'object': {
+        'general':{
+            'pattern':'.*',
+            'same_model_sequence_strategy': 'first' # also 'most', 'most_unique's
+        },
+        'sequence': [
+        {
+            # YoloV4 on GPU if TPU fails (because sequence strategy is 'first')
+            'object_config':'./models/yolov4/yolov4.cfg',
+            'object_weights':'./models/yolov4/yolov4.weights',
+            'object_labels': './models/yolov4/coco.names',
+            'object_min_confidence': 0.3,
+            'object_framework':'opencv',
+            'object_processor': 'cpu'
+        }]
+    },
+    'face': {
+        'general':{
+            'pattern': '.*',
+            'same_model_sequence_strategy': 'first'
+        },
+        'sequence': [{
+            'face_detection_framework': 'dlib',
+            'known_images_path': './known_faces',
+            'face_model': 'cnn',
+            'face_train_model': 'cnn',
+            'face_recog_dist_threshold': 0.6,
+            'face_num_jitters': 1,
+            'face_upsample_times':1
+        }]
+    },
 
-face_obj = FaceRecog.Face(options=g.config)
-od_obj = ObjectDetect.Object(options=g.config)
-alpr_obj = Alpr.Alpr(options=g.config)
+    'alpr': {
+         'general':{
+            'same_model_sequence_strategy': 'first',
+            'pre_existing_labels':['car', 'motorbike', 'bus', 'truck', 'boat'],
+
+        },
+         'sequence': [{
+            'alpr_api_type': 'cloud',
+            'alpr_service': 'plate_recognizer',
+            'alpr_key': pyzmutils.get(key='PLATEREC_ALPR_KEY', section='secrets', conf=secrets_conf),
+            'platrec_stats': 'no',
+            'platerec_min_dscore': 0.1,
+            'platerec_min_score': 0.2,
+         }]
+    }
+} # ml_options
+
+stream_options = {
+        #'frame_skip':2,
+        #'start_frame': 1,
+        #'max_frames':10,
+        'strategy': 'most_models',
+        #'strategy': 'first',
+        #'api': zmapi,
+        'download': False,
+        #'frame_set': 'snapshot,alarm',
+        'resize': 800,
+}
+
+m = DetectSequence(options=ml_options, logger=g.log)
+
+
 #q = deque()
 
 
