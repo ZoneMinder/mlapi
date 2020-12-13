@@ -31,7 +31,8 @@ Install
 - face recognition requires cmake/gcc/standard linux dev libraries installed (if you have gcc, you likely have everything else. You may need to install cmake on top of it if you don't already have it)
 - If you plan on using Tiny/Yolo V4, You need Open CV > 4.3
 - If you plan on using EdgeTPU, please make sure you have all the libs
-  installed as per https://coral.ai/docs/accelerator/get-started/ including `sudo apt-get install python3-edgetpu`
+  installed as per https://coral.ai/docs/accelerator/get-started/ 
+  
 
 Note that this package also needs OpenCV which is not installed by the above step by default. This is because you may have a GPU and may want to use GPU support. If not, pip is fine. See [this page](https://zmeventnotification.readthedocs.io/en/latest/guides/hooks.html#opencv-install) on how to install OpenCV
 

@@ -6,7 +6,7 @@ MAX_FILE_SIZE_MB = 5
 ALLOWED_EXTENSIONS = set(['.png', '.jpg', '.jpeg'])
 ACCESS_TOKEN_EXPIRES = 60 * 60  # 1 hr
 
-log = g_log.Log()
+log = g_log.ConsoleLog()
 logger = log;
 
 config = {}
@@ -86,6 +86,19 @@ config_vals = {
             'default': 'opencv',
             'type': 'string'
         },
+
+        'ml_sequence': {
+            'section': 'ml',
+            'default': None,
+            'type': 'eval'
+        },
+        'stream_sequence': {
+            'section': 'ml',
+            'default': None,
+            'type': 'eval'
+        },
+     
+
         'object_processor':{
             'section': 'object',
             'default': 'cpu',

@@ -10,13 +10,13 @@ class Database:
     
     def __init__(self):
         db = g.config['db_path']+'/db.json'
-        g.log.debug ('Opening DB at {}'.format(db))
+        g.log.Debug (1,'Opening DB at {}'.format(db))
         self.db = TinyDB(db)
         self.users = self.db.table('users')
         self.query = Query()
-        g.log.debug ('DB engine ready')
+        g.log.Debug (1,'DB engine ready')
         if not len(self.users):
-            g.log.debug ('Initializing default users')
+            g.log.Debug (1,'Initializing default users')
 
             print ('--------------- User Creation ------------')
             print ('Please configure atleast one user:')
@@ -45,10 +45,10 @@ class Database:
         stored_password_hash = user_object.get('password')
        
         if not bcrypt.verify(supplied_password, stored_password_hash):
-            g.log.debug ('Hashes do NOT match')
+            g.log.Debug (1,'Hashes do NOT match')
             return False
         else:
-            g.log.debug ('Hashes are correct')
+            g.log.Debug (1,'Hashes are correct')
             return  True
 
 

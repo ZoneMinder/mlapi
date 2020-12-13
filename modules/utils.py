@@ -27,7 +27,7 @@ def process_config(args):
         elif t == 'float':
             return float(val)
         else:
-            g.logger.error ('Unknown conversion type {} for config key:{}'.format(e['type'], e['key']))
+            g.logger.Error ('Unknown conversion type {} for config key:{}'.format(e['type'], e['key']))
             return val
 
     def _set_config_val(k,v):
@@ -35,12 +35,12 @@ def process_config(args):
         val = config_file[v['section']].get(k,v['default'])
 
         if val and val[0] == '!': # its a secret token, so replace
-            g.logger.debug ('Secret token found in config: {}'.format(val));
+            g.logger.Debug (1,'Secret token found in config: {}'.format(val));
             if not has_secrets:
                 raise ValueError('Secret token found, but no secret file specified')
             if secrets_file.has_option('secrets', val[1:]):
                 vn = secrets_file.get('secrets', val[1:])
-                #g.logger.debug ('Replacing {} with {}'.format(val,vn))
+                #g.logger.Debug (1,'Replacing {} with {}'.format(val,vn))
                 val = vn
             else:
                 raise ValueError ('secret token {} not found in secrets file {}'.format(val,secrets_filename))
@@ -51,7 +51,7 @@ def process_config(args):
             dval = g.config[k]
         else:
             dval = '***********'
-        #g.logger.debug ('Config: setting {} to {}'.format(k,dval))
+        #g.logger.Debug (1,'Config: setting {} to {}'.format(k,dval))
 
     # main        
     try:
@@ -61,7 +61,7 @@ def process_config(args):
 
         if config_file.has_option('general','secrets'):
             secrets_filename = config_file.get('general', 'secrets')
-            g.logger.debug ('secret filename: {}'.format(secrets_filename))
+            g.logger.Debug (1,'secret filename: {}'.format(secrets_filename))
             has_secrets = True
             secrets_file = ConfigParser(interpolation = None)
             try:
@@ -70,25 +70,25 @@ def process_config(args):
             except:
                 raise            
         else:
-            g.logger.debug ('No secrets file configured')
+            g.logger.Debug (1,'No secrets file configured')
         # now read config values
        
         for k,v in g.config_vals.items():
-            #g.logger.debug ('processing {} {}'.format(k,v))
+            #g.logger.Debug (1,'processing {} {}'.format(k,v))
             if k == 'secrets':
                 continue
            
             
             _set_config_val(k,v)
-            #g.logger.debug ("done")
+            #g.logger.Debug (1,"done")
         
     
 
         # Check if we have a custom overrides for this monitor
         
     except Exception as e:
-        g.logger.error('Error parsing config:{}'.format(args['config']))
-        g.logger.error('Error was:{}'.format(e))
+        g.logger.Error('Error parsing config:{}'.format(args['config']))
+        g.logger.Error('Error was:{}'.format(e))
         exit(0)
 
 
@@ -97,7 +97,7 @@ def process_config(args):
 
 def draw_bbox(img, bbox, labels, classes, confidence, color=None, write_conf=True):
 
-   # g.logger.debug ("DRAW BBOX={} LAB={}".format(bbox,labels))
+   # g.logger.Debug (1,"DRAW BBOX={} LAB={}".format(bbox,labels))
     slate_colors = [ 
             (39, 174, 96),
             (142, 68, 173),
@@ -109,7 +109,7 @@ def draw_bbox(img, bbox, labels, classes, confidence, color=None, write_conf=Tru
    
     arr_len = len(bgr_slate_colors)
     for i, label in enumerate(labels):
-        #=g.logger.debug ('drawing box for: {}'.format(label))
+        #=g.logger.Debug (1,'drawing box for: {}'.format(label))
         color = bgr_slate_colors[i % arr_len]
         if write_conf and confidence:
             label += ' ' + str(format(confidence[i] * 100, '.2f')) + '%'

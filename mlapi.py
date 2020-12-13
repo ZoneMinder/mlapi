@@ -64,7 +64,7 @@ def get_file(args):
     # passed as a payload url
     elif args['url']:
         url = args['url']
-        g.log.debug ('Got url:{}'.format(url))
+        g.log.Debug (1,'Got url:{}'.format(url))
         ext = file_ext(url)
         r = py_requests.get(url, allow_redirects=True)
         
@@ -72,12 +72,12 @@ def get_file(args):
         ct = r.headers.get('content-type')
         if cd:
             ext = file_ext(cd)
-            g.log.debug ('extension {} derived from {}'.format(ext,cd))
+            g.log.Debug (1,'extension {} derived from {}'.format(ext,cd))
         elif ct:
             ext = guess_extension(ct.partition(';')[0].strip())
             if ext == '.jpe': 
                 ext = '.jpg'
-            g.log.debug ('extension {} derived from {}'.format(ext,ct))
+            g.log.Debug (1,'extension {} derived from {}'.format(ext,ct))
             if not allowed_ext(ext):
                 abort(400, msg='filetype {} not allowed'.format(ext))        
         else:
@@ -86,7 +86,7 @@ def get_file(args):
     else:
         abort(400, msg='could not determine file type')
 
-    g.log.debug ('get_file returned: {}{}'.format(file_with_path_no_ext,ext))
+    g.log.Debug (1,'get_file returned: {}{}'.format(file_with_path_no_ext,ext))
     return file_with_path_no_ext, ext
 # general argument processing
 
@@ -100,7 +100,7 @@ class Detect(Resource):
         args = parse_args()
 
         if args['type'] == 'face_names':
-            g.log.debug ('List of face names requested')
+            g.log.Debug (1,'List of face names requested')
             print (face_obj.get_classes())
             face_list = {
                 'names': face_obj.get_classes().tolist()
@@ -109,15 +109,15 @@ class Detect(Resource):
 
         if args['type'] == 'face':
             m = face_obj
-            g.log.debug ('Face Recognition requested')
+            g.log.Debug (1,'Face Recognition requested')
         
         elif args['type'] == 'alpr':
             m = alpr_obj
-            g.log.debug ('ALPR requested')
+            g.log.Debug (1,'ALPR requested')
 
         elif args['type'] in [None, 'object']:
             m = od_obj
-            g.log.debug ('Object Recognition requested')
+            g.log.Debug (1,'Object Recognition requested')
             #m = ObjectDetect.Object()
         else:
             abort(400, msg='Invalid Model:{}'.format(args['type']))
@@ -223,8 +223,8 @@ alpr_obj = Alpr.Alpr(options=g.config)
 
 
 if __name__ == '__main__':
-    g.log.info ('--------| mlapi version:{} |--------'.format(__version__))
-    g.log.info ('Starting server with max:{} processes'.format
+    g.log.Info ('--------| mlapi version:{} |--------'.format(__version__))
+    g.log.Info ('Starting server with max:{} processes'.format
     (g.config['processes']))
     #app.run(host='0.0.0.0', port=5000, threaded=True)
     app.run(host='0.0.0.0', port=g.config['port'], threaded=False, processes=g.config['processes'])
