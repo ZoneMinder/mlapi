@@ -25,7 +25,8 @@ from modules.__init__ import __version__
 
 from pyzm.ml.detect_sequence import DetectSequence
 import pyzm.helpers.utils as pyzmutils
-
+import ast
+import pyzm.api as zmapi
 
 
 def file_ext(str):
@@ -42,6 +43,7 @@ def parse_args():
 
     parser = reqparse.RequestParser()
     parser.add_argument('type', location='args',  default=None)
+    parser.add_argument('response_format', location='args',  default='legacy')
     parser.add_argument('delete', location='args',
                         type=inputs.boolean, default=False)
     parser.add_argument('download', location='args',
@@ -51,6 +53,7 @@ def parse_args():
     return parser.parse_args()
 
 def get_file(args):
+  
     unique_filename = str(uuid.uuid4())
     file_with_path_no_ext = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
     ext = None
@@ -102,7 +105,17 @@ class Detect(Resource):
     @jwt_required
     def post(self):
         args = parse_args()
+        req = request.get_json()
+        #print (req)
+        fi = None
+        stream_options={}
+        stream = None 
 
+        if req:
+            stream = req.get('stream')
+            stream_options = req.get('stream_options')
+            stream_options['api'] = zmapi
+        #g.log.Info ('I GOT: {} and {}'.format(stream, stream_options))        
         if args['type'] == 'face_names':
             g.log.Debug (1,'List of face names requested')
             print (face_obj.get_classes())
@@ -122,14 +135,34 @@ class Detect(Resource):
             #m = ObjectDetect.Object()
         else:
             abort(400, msg='Invalid Model:{}'.format(args['type']))
-        fip,ext = get_file(args)
-        fi = fip+ext
-        image = cv2.imread(fi)
+
+        if not stream:
+            g.log.Debug (1, 'Stream info not found, looking at args...')
+            fip,ext = get_file(args)
+            fi = fip+ext
+            stream = fi
+            #image = cv2.imread(fi)
         #bbox,label,conf = m.detect(image)
-        matched_data,all_data = m.detect_stream(stream=fi, options=stream_options)
+
+        g.log.Debug (1, f'Calling detect streams with {stream} and {stream_options} and ml_options={ml_options}')
+        #print (f'************************ {args}')
+
+        matched_data,all_matches = m.detect_stream(stream=stream, options=stream_options)
+        matched_data['image'] = None
+
+        if args.get('response_format') == 'new':
+            resp_obj= {
+                'matched_data': matched_data,
+                'all_matches': all_matches
+            }
+            g.log.Debug (1, 'Returning {}'.format(resp_obj))
+            return resp_obj
+
+        # legacy format
         bbox = matched_data['boxes']
         label = matched_data['labels']
         conf = matched_data['confidences']
+
 
         detections=[]
         for l, c, b in zip(label, conf, bbox):
@@ -142,7 +175,8 @@ class Detect(Resource):
             }
             detections.append(obj)
 
-        if args['delete']:
+        if args['delete'] and fi:
+            #pass
             os.remove(fi)
         return detections
 
@@ -214,81 +248,39 @@ api.add_resource(Login, '/login')
 api.add_resource(Detect, '/detect/object')
 api.add_resource(Health, '/health')
 
-secrets_conf = pyzmutils.read_config('./secrets.mine')
-g.log.set_level(5)
-ml_options = {
-    'general': {
-        'model_sequence': 'object,face,alpr',
+secrets_conf = pyzmutils.read_config(g.config['secrets'])
 
-    },
-   
-    'object': {
-        'general':{
-            'pattern':'.*',
-            'same_model_sequence_strategy': 'first' # also 'most', 'most_unique's
-        },
-        'sequence': [
-        {
-            # YoloV4 on GPU if TPU fails (because sequence strategy is 'first')
-            'object_config':'./models/yolov4/yolov4.cfg',
-            'object_weights':'./models/yolov4/yolov4.weights',
-            'object_labels': './models/yolov4/coco.names',
-            'object_min_confidence': 0.3,
-            'object_framework':'opencv',
-            'object_processor': 'cpu'
-        }]
-    },
-    'face': {
-        'general':{
-            'pattern': '.*',
-            'same_model_sequence_strategy': 'first'
-        },
-        'sequence': [{
-            'face_detection_framework': 'dlib',
-            'known_images_path': './known_faces',
-            'face_model': 'cnn',
-            'face_train_model': 'cnn',
-            'face_recog_dist_threshold': 0.6,
-            'face_num_jitters': 1,
-            'face_upsample_times':1
-        }]
-    },
-
-    'alpr': {
-         'general':{
-            'same_model_sequence_strategy': 'first',
-            'pre_existing_labels':['car', 'motorbike', 'bus', 'truck', 'boat'],
-
-        },
-         'sequence': [{
-            'alpr_api_type': 'cloud',
-            'alpr_service': 'plate_recognizer',
-            'alpr_key': pyzmutils.get(key='PLATEREC_ALPR_KEY', section='secrets', conf=secrets_conf),
-            'platrec_stats': 'no',
-            'platerec_min_dscore': 0.1,
-            'platerec_min_score': 0.2,
-         }]
-    }
-} # ml_options
-
-stream_options = {
-        #'frame_skip':2,
-        #'start_frame': 1,
-        #'max_frames':10,
-        'strategy': 'most_models',
-        #'strategy': 'first',
-        #'api': zmapi,
-        'download': False,
-        #'frame_set': 'snapshot,alarm',
-        'resize': 800,
+api_options  = {
+    'apiurl': pyzmutils.get(key='ZM_API_PORTAL', section='secrets', conf=secrets_conf),
+    'portalurl':pyzmutils.get(key='ZM_PORTAL', section='secrets', conf=secrets_conf),
+    'user': pyzmutils.get(key='ZM_USER', section='secrets', conf=secrets_conf),
+    'password': pyzmutils.get(key='ZM_PASSWORD', section='secrets', conf=secrets_conf),
+    #'disable_ssl_cert_check': True
 }
 
+
+zmapi = zmapi.ZMApi(options=api_options, logger=g.log)
+
+g.log.set_level(5)
+ml_options = {}
+stream_options = {}
+
+if g.config['ml_sequence']:
+        g.log.Debug(2,'using ml_sequence')
+        ml_options = g.config['ml_sequence']
+        secrets = pyzmutils.read_config(g.config['secrets'])
+        ml_options = pyzmutils.template_fill(input_str=ml_options, config=None, secrets=secrets._sections.get('secrets'))
+        ml_options = ast.literal_eval(ml_options)
+        #print (ml_options)
+else:
+    g.logger.Debug(2,'mapping legacy ml data from config')
+    ml_options = utils.convert_config_to_ml_sequence()
+
+# stream options will come from zm_detect
+
+#print(ml_options)
+
 m = DetectSequence(options=ml_options, logger=g.log)
-
-
-#q = deque()
-
-
 
 
 if __name__ == '__main__':

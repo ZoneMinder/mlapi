@@ -59,6 +59,7 @@ config_vals = {
             'default': '5000',
             'type': 'int',
         },
+      
         'images_path':{
             'section': 'general',
             'default': './images',
@@ -80,7 +81,16 @@ config_vals = {
             'default': '100%',
             'type': 'string',
         },
-
+        'detection_sequence':{
+            'section': 'general',
+            'default': 'object',
+            'type': 'str_split'
+        },
+        'detection_mode': {
+            'section':'general',
+            'default':'all',
+            'type':'string'
+        },
        'object_framework':{
             'section': 'object',
             'default': 'opencv',
@@ -90,12 +100,12 @@ config_vals = {
         'ml_sequence': {
             'section': 'ml',
             'default': None,
-            'type': 'eval'
+            'type': 'string'
         },
         'stream_sequence': {
             'section': 'ml',
             'default': None,
-            'type': 'eval'
+            'type': 'string'
         },
      
 
@@ -125,6 +135,11 @@ config_vals = {
             'section': 'object',
             'default': '0.4',
             'type': 'float'
+        },
+        'object_detection_pattern': {
+            'section': 'object',
+            'default': '.*',
+            'type': 'string'
         },
         # Face
         'face_detection_framework':{
@@ -193,7 +208,11 @@ config_vals = {
             'default': '50',
             'type': 'int',
         },
-
+        'face_detection_pattern': {
+            'section': 'face',
+            'default': '.*',
+            'type': 'string'
+        },
         #  ALPR
 
         'alpr_service': {
@@ -217,7 +236,7 @@ config_vals = {
             'default': 'yes',
         },
 
-         'alpr_pattern':{
+         'alpr_detection_pattern':{
             'section': 'general',
             'default': '.*',
             'type': 'string'
