@@ -258,10 +258,15 @@ api_options  = {
     #'disable_ssl_cert_check': True
 }
 
+g.log.set_level(5)
+
+if not api_options.get('apiurl') or not api_options.get('portalurl'):
+    g.log.Fatal('Missing API and/or Portal URLs. Your secrets file probably doesn\'t have these values')
 
 zmapi = zmapi.ZMApi(options=api_options, logger=g.log)
 
-g.log.set_level(5)
+     
+
 ml_options = {}
 stream_options = {}
 
