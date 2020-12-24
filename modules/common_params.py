@@ -59,6 +59,12 @@ config_vals = {
             'default': '5000',
             'type': 'int',
         },
+
+        'wsgi_server':{
+            'section': 'general',
+            'default': 'flask',
+            'type': 'string',
+        },
       
         'images_path':{
             'section': 'general',

@@ -290,7 +290,16 @@ m = DetectSequence(options=ml_options, logger=g.log)
 
 if __name__ == '__main__':
     g.log.Info ('--------| mlapi version:{} |--------'.format(__version__))
-    g.log.Info ('Starting server with max:{} processes'.format
-    (g.config['processes']))
+    
     #app.run(host='0.0.0.0', port=5000, threaded=True)
-    app.run(host='0.0.0.0', port=g.config['port'], threaded=False, processes=g.config['processes'])
+    #app.run(host='0.0.0.0', port=g.config['port'], threaded=False, processes=g.config['processes'])
+    print (g.config['wsgi_server'])
+    if g.config['wsgi_server'] == 'bjoern':
+        g.log.Info ('Using bjoern as WSGI server')
+        import bjoern
+        bjoern.run(app,host='0.0.0.0',port=g.config['port'])
+    else:
+        g.log.Info ('Using flask as WSGI server')
+        g.log.Info ('Starting server with max:{} processes'.format(g.config['processes']))
+        app.run(host='0.0.0.0', port=g.config['port'], threaded=False, processes=g.config['processes'])
+        
