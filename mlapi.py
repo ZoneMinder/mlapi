@@ -270,7 +270,7 @@ zmapi = zmapi.ZMApi(options=api_options, logger=g.log)
 ml_options = {}
 stream_options = {}
 
-if g.config['ml_sequence']:
+if g.config['ml_sequence'] and g.config['use_sequence'] == 'yes':
         g.log.Debug(2,'using ml_sequence')
         ml_options = g.config['ml_sequence']
         secrets = pyzmutils.read_config(g.config['secrets'])
