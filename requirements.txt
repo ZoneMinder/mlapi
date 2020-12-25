@@ -11,6 +11,6 @@ flask
 progressbar33
 scikit_learn
 face_recognition
-pyzm==0.3.1
+pyzm==0.3.2
 portalocker
 bjoern
