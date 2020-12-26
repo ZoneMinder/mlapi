@@ -22,6 +22,8 @@ import modules.common_params as g
 import modules.db as Database
 import modules.utils as utils
 from modules.__init__ import __version__
+from pyzm import __version__ as pyzm_version
+
 
 from pyzm.ml.detect_sequence import DetectSequence
 import pyzm.helpers.utils as pyzmutils
@@ -289,7 +291,7 @@ m = DetectSequence(options=ml_options, logger=g.log)
 
 
 if __name__ == '__main__':
-    g.log.Info ('--------| mlapi version:{} |--------'.format(__version__))
+    g.log.Info ('--------| mlapi version:{}, pyzm version:{} |--------'.format(__version__, pyzm_version))
     
     #app.run(host='0.0.0.0', port=5000, threaded=True)
     #app.run(host='0.0.0.0', port=g.config['port'], threaded=False, processes=g.config['processes'])
