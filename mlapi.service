@@ -12,6 +12,9 @@
 # sudo chmod 644 /etc/systemd/system/mlapi.service
 # sudo systemctl enable mlapi
 
+# To start, 
+# sudo systemctl start mlapi
+
 [Unit]
 Description=Machine Learning API service
 After=network.target

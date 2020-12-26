@@ -43,7 +43,16 @@ Then:
  sudo -H pip3 install -r requirements.txt
  ```
 
-Finally, you also need to get the inferencing models
+Note: By default, `mlapiconfig.ini` uses the bjoern WSGI server. On debian, the following
+dependencies are needed for bjoern:
+```
+sudo apt install libev-dev libevdev2
+```
+Alternately, you can just comment out `wsgi_server` and it will fall back to using flask.
+
+Finally, you also need to get the inferencing models. Note this step is ONLY needed if you
+don't already have the models downloaded. If you are running mlapi on the same server ZMES is 
+running, you likely already have the models in `/var/lib/zmeventnotification/models/`.
 
 To download all models, except coral edgetpu models:
 ```
@@ -95,6 +104,10 @@ Object detection for a remote image (via url):
 ```
 curl -H "Content-Type:application/json" -H "Authorization: Bearer ${ACCESS_TOKEN}" -XPOST -d "{\"url\":\"https://upload.wikimedia.org/wikipedia/commons/c/c4/Anna%27s_hummingbird.jpg\"}" http://localhost:5000/api/v1/detect/object
 ```
+
+**NOTE**: The payload shown below is when you invoke this from command line. When it is invoked by 
+`zm_detect` a different format is returned that is compatible with the ES needs.
+
 returns:
 
 ```
