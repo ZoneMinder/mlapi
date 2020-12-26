@@ -151,7 +151,7 @@ class Detect(Resource):
 
         matched_data,all_matches = m.detect_stream(stream=stream, options=stream_options)
         matched_data['image'] = None
-
+       
         if args.get('response_format') == 'new':
             resp_obj= {
                 'matched_data': matched_data,
