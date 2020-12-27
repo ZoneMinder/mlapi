@@ -32,7 +32,7 @@ WorkingDirectory=/var/lib/zmeventnotification/mlapi
 # Change to your username
 User=www-data
 #Change paths if needed
-ExecStart=/usr/bin/python3 mlapi.py -c ./mlapiconfig.ini
+ExecStart=/usr/bin/python3 -u mlapi.py -c ./mlapiconfig.ini
 
 
 StandardOutput=file:/var/log/zm/mlapi.log
