@@ -277,6 +277,7 @@ if g.config['ml_sequence'] and g.config['use_sequence'] == 'yes':
         ml_options = g.config['ml_sequence']
         secrets = pyzmutils.read_config(g.config['secrets'])
         ml_options = pyzmutils.template_fill(input_str=ml_options, config=None, secrets=secrets._sections.get('secrets'))
+        #print (ml_options)
         ml_options = ast.literal_eval(ml_options)
         #print (ml_options)
 else:
