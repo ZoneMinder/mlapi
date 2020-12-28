@@ -5,6 +5,7 @@ import requests
 import progressbar as pb
 import os
 import cv2
+import re
 
 g.config = {}
 
@@ -176,20 +177,50 @@ def process_config(args):
         else:
             g.logger.Debug (1,'No secrets file configured')
         # now read config values
-       
-        for k,v in g.config_vals.items():
-            #g.logger.Debug (1,'processing {} {}'.format(k,v))
-            if k == 'secrets':
-                continue
-           
-            
-            _set_config_val(k,v)
-            #g.logger.Debug (1,"done")
-        
     
-
-        # Check if we have a custom overrides for tmonitor
+        # first, fill in config with default values
+        for k,v in g.config_vals.items():
+           
+            g.config[k] = v.get('default', None)
+            #print ('{}={}'.format(k,g.config[k]))
+            
+        # now iterate the file
+        for sec in config_file.sections():
+            if sec == 'secrets':
+                continue
+            for (k, v) in config_file.items(sec):
+                if g.config_vals.get(k):
+                    _set_config_val(k,g.config_vals[k] )
+                else:
+                    #g.logger.Debug(4, 'storing unknown attribute {}={}'.format(k,v))
+                    g.config[k] = v 
+                    #_set_config_val(k,{'section': sec, 'default': None, 'type': 'string'} )
         
+         # Now lets make sure we take care of parameter substitutions {{}}
+        g.logger.Debug (4,'Finally, doing parameter substitution')
+
+
+        p = r'{{(\w+?)}}'
+        for gk, gv in g.config.items():
+            #input ('Continue')
+            #print(f"PROCESSING {gk} {gv}")
+            gv = '{}'.format(gv)
+            #if not isinstance(gv, str):
+            #    continue
+            while True:
+                matches = re.findall(p,gv)
+                replaced = False
+                for match_key in matches:
+                    if match_key in g.config:
+                        replaced = True
+                        new_val = g.config[gk].replace('{{' + match_key + '}}',str(g.config[match_key]))
+                        g.config[gk] = new_val
+                        gv = new_val
+                    else:
+                        g.logger.Debug(4, 'substitution key: {} not found'.format(match_key))
+                if not replaced:
+                    break
+                    
     except Exception as e:
         g.logger.Error('Error parsing config:{}'.format(args['config']))
         g.logger.Error('Error was:{}'.format(e))
