@@ -117,6 +117,7 @@ class Detect(Resource):
             stream = req.get('stream')
             stream_options = req.get('stream_options')
             stream_options['api'] = zmapi
+            ml_overrides = req.get('ml_overrides')
         #g.log.Info ('I GOT: {} and {}'.format(stream, stream_options))        
         if args['type'] == 'face_names':
             g.log.Debug (1,'List of face names requested')
@@ -146,10 +147,10 @@ class Detect(Resource):
             #image = cv2.imread(fi)
         #bbox,label,conf = m.detect(image)
 
-        g.log.Debug (1, f'Calling detect streams with {stream} and {stream_options} and ml_options={ml_options}')
+        g.log.Debug (1, f'Calling detect streams with {stream} and {stream_options} and ml_overrides={ml_overrides} ml_options={ml_options}')
         #print (f'************************ {args}')
 
-        matched_data,all_matches = m.detect_stream(stream=stream, options=stream_options)
+        matched_data,all_matches = m.detect_stream(stream=stream, options=stream_options, ml_overrides=ml_overrides)
         matched_data['image'] = None
        
         if args.get('response_format') == 'new':
