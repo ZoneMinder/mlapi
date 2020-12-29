@@ -7,7 +7,7 @@ ALLOWED_EXTENSIONS = set(['.png', '.jpg', '.jpeg'])
 ACCESS_TOKEN_EXPIRES = 60 * 60  # 1 hr
 
 log = g_log.ConsoleLog()
-logger = log;
+logger = log
 
 config = {}
 config_vals = {
@@ -96,6 +96,18 @@ config_vals = {
             'section':'general',
             'default':'all',
             'type':'string'
+        },
+        'use_zm_logs': {
+            'section':'general',
+            'default':'no',
+            'type':'string'
+        },
+
+         'pyzm_overrides': {
+            'section': 'general',
+            'default': "{}",
+            'type': 'dict',
+
         },
        
        'object_framework':{

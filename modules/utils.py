@@ -6,6 +6,8 @@ import progressbar as pb
 import os
 import cv2
 import re
+import ast
+import traceback
 
 g.config = {}
 
@@ -122,8 +124,8 @@ def process_config(args):
     def _correct_type(val,t):
         if t == 'int':
              return int(val)
-        elif t == 'eval':
-            return eval(val) if val else None
+        elif t == 'eval'  or t == 'dict':
+            return ast.literal_eval(val) if val else None
         elif t == 'str_split':
             return str_split(val) if val else None
         elif t  == 'string':
@@ -161,6 +163,25 @@ def process_config(args):
     try:
         config_file = ConfigParser(interpolation=None)
         config_file.read(args['config'])
+        
+        g.config['pyzm_overrides'] = {}
+        if config_file.has_option('general', 'pyzm_overrides'):
+            pyzm_overrides = config_file.get('general', 'pyzm_overrides')
+            g.config['pyzm_overrides'] =  ast.literal_eval(pyzm_overrides) if pyzm_overrides else {}
+            if args.get('debug'):
+                g.config['pyzm_overrides']['dump_console'] = True
+                g.config['pyzm_overrides']['log_debug'] = True
+                g.config['pyzm_overrides']['log_level_debug'] = 5
+                g.config['pyzm_overrides']['log_debug_target'] = None
+
+        if config_file.has_option('general', 'use_zm_logs'):
+            use_zm_logs = config_file.get('general', 'use_zm_logs')
+            if use_zm_logs == 'yes':
+                import pyzm.ZMLog as zmlog
+                g.logger.Info ('Switching to ZM logs from here on...')
+                zmlog.init(name='zm_mlapi',override=g.config['pyzm_overrides'])
+                g.log = zmlog
+                g.logger=g.log
         
 
         if config_file.has_option('general','secrets'):
@@ -224,6 +245,8 @@ def process_config(args):
     except Exception as e:
         g.logger.Error('Error parsing config:{}'.format(args['config']))
         g.logger.Error('Error was:{}'.format(e))
+        g.logger.Fatal('error: Traceback:{}'.format(traceback.format_exc()))
+
         exit(0)
 
 

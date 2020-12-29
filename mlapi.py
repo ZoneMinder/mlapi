@@ -212,10 +212,14 @@ class Health(Resource):
         response.status_code = 200
         return response
 
+#-----------------------------------------------
 # main init
+#-----------------------------------------------
 
 ap = argparse.ArgumentParser()
 ap.add_argument('-c', '--config', required=True, help='config file with path')
+ap.add_argument('-d', '--debug', help='enables debug on console', action='store_true')
+
 args, u = ap.parse_known_args()
 args = vars(args)
 utils.process_config(args)
@@ -296,7 +300,6 @@ if __name__ == '__main__':
     
     #app.run(host='0.0.0.0', port=5000, threaded=True)
     #app.run(host='0.0.0.0', port=g.config['port'], threaded=False, processes=g.config['processes'])
-    print (g.config['wsgi_server'])
     if g.config['wsgi_server'] == 'bjoern':
         g.log.Info ('Using bjoern as WSGI server')
         import bjoern
