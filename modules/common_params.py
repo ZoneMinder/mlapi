@@ -97,11 +97,7 @@ config_vals = {
             'default':'all',
             'type':'string'
         },
-        'return_matched_image': {
-            'section': 'general',
-            'default': 'no',
-            'type': 'string'
-        },
+       
        'object_framework':{
             'section': 'object',
             'default': 'opencv',
