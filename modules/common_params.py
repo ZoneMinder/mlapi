@@ -115,6 +115,13 @@ config_vals = {
             'default': 'opencv',
             'type': 'string'
         },
+
+        'disable_locks': {
+            'section': 'ml',
+            'default': 'no',
+            'type': 'string'
+        },
+
         'use_sequence': {
             'section': 'ml',
             'default': 'no',
