@@ -153,7 +153,7 @@ class Detect(Resource):
         matched_data,all_matches = m.detect_stream(stream=stream, options=stream_options, ml_overrides=ml_overrides)
         matched_data['image'] = None
        
-        if args.get('response_format') == 'new':
+        if args.get('response_format') == 'zm_detect':
             resp_obj= {
                 'matched_data': matched_data,
                 'all_matches': all_matches
