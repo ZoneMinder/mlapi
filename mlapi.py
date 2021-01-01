@@ -276,7 +276,7 @@ api_options  = {
     'portalurl':pyzmutils.get(key='ZM_PORTAL', section='secrets', conf=secrets_conf),
     'user': pyzmutils.get(key='ZM_USER', section='secrets', conf=secrets_conf),
     'password': pyzmutils.get(key='ZM_PASSWORD', section='secrets', conf=secrets_conf),
-    #'disable_ssl_cert_check': True
+    'disable_ssl_cert_check':False if g.config['allow_self_signed']=='no' else True
 }
 
 g.log.set_level(5)

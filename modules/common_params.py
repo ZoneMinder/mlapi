@@ -109,6 +109,12 @@ config_vals = {
             'type': 'dict',
 
         },
+
+        'allow_self_signed':{
+            'section': 'general',
+            'default': 'yes',
+            'type': 'string'
+        },
        
        'object_framework':{
             'section': 'object',
