@@ -1,3 +1,7 @@
+Note
+=====
+Release 2.1.0 onwards of mlapi requires ES 6.1.0 (which as of Dec 31 is not yet released, so you will need ES master)
+
 What
 =====
 An API gateway that you can install in your own server to do object and face recognition.
