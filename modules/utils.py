@@ -162,7 +162,7 @@ def process_config(args):
 
     # main        
     try:
-        config_file = ConfigParser(interpolation=None)
+        config_file = ConfigParser(interpolation=None, inline_comment_prefixes='#')
         config_file.read(args['config'])
         
         g.config['pyzm_overrides'] = {}
@@ -190,7 +190,7 @@ def process_config(args):
             g.config['secrets'] = secrets_filename
             g.logger.Debug (1,'secret filename: {}'.format(secrets_filename))
             has_secrets = True
-            secrets_file = ConfigParser(interpolation = None)
+            secrets_file = ConfigParser(interpolation = None, inline_comment_prefixes='#')
             try:
                 with open(secrets_filename) as f:
                     secrets_file.read_file(f)
