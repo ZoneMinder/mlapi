@@ -1,6 +1,10 @@
 # Changelog
 
-## [v2.1.0](https://github.com/pliablepixels/mlapi/tree/v2.1.0) (2020-12-31)
+## [v2.1.1](https://github.com/pliablepixels/mlapi/tree/v2.1.1) (2021-01-02)
+
+[Full Changelog](https://github.com/pliablepixels/mlapi/compare/v2.1.0...v2.1.1)
+
+## [v2.1.0](https://github.com/pliablepixels/mlapi/tree/v2.1.0) (2021-01-02)
 
 [Full Changelog](https://github.com/pliablepixels/mlapi/compare/52262891ef0b5a235c1498889076f3cc17d53b58...v2.1.0)
 
