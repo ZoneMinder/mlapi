@@ -1,7 +1,7 @@
 Note
 =====
-Release 2.1.0 onwards of mlapi requires ES 6.1.0 
-Starting 2.1.0, the mlapiconfig.ini file has changed to support sequence structures. Please read 
+Release 2.1.1 onwards of mlapi requires ES 6.1.0 
+Starting 2.1.1, the mlapiconfig.ini file has changed to support sequence structures. Please read 
 [this](https://zmeventnotification.readthedocs.io/en/latest/guides/hooks.html#understanding-detection-configuration) to understand what is going on and how to make best use of these changes.
 
 What
