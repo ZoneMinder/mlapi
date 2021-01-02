@@ -1,6 +1,6 @@
 Note
 =====
-Release 2.1.0 onwards of mlapi requires ES 6.1.0 (which as of Dec 31 is not yet released, so you will need ES master)
+Release 2.1.0 onwards of mlapi requires ES 6.1.0 
 
 What
 =====
@@ -34,7 +34,7 @@ Install
 - You need python3 for this to run
 - face recognition requires cmake/gcc/standard linux dev libraries installed (if you have gcc, you likely have everything else. You may need to install cmake on top of it if you don't already have it)
 - If you plan on using Tiny/Yolo V4, You need Open CV > 4.3
-- If you plan on using EdgeTPU, please make sure you have all the libs
+- If you plan on using the Google Coral TPU, please make sure you have all the libs
   installed as per https://coral.ai/docs/accelerator/get-started/ 
   
 
@@ -74,15 +74,37 @@ INSTALL_CORAL_EDGETPU=yes ./get_models.sh
 
 Running
 ========
+
+Before you run, you need to create at least one user. Use `python3 mlapi_adduser.py` for that
+
+Server: Manually
+------------------
 To run the server:
 ```
 python3 ./mlapi.py -c mlapiconfig.ini
 ```
 
-To invoke detection, you need to:
+Server: Automatically
+-----------------------
+Take a look at `mlapi.service` and customize it for your needs
 
-Server Side:
-- Make sure the username and password are created. Use `python3 mlapi_adduser.py` for that
+
+Client Side: From zm_detect
+-----------------------------
+One of the key uses of mlapi is to act as an API gateway for zm_detect, the ML 
+python process for zmeventnotification. When run in this mode, zm_detect.py does not do local
+inferencing. Instead if invokes an API call to mlapi. The big advantage is mlapi only loads the model(s) once 
+and keeps them in memory, greatly reducing total time for detection.  If you downloaded mlapi to do this,
+read ``objectconfig.ini`` in ``/etc/zm/`` to set it up. It is as simple as configuring the ``[remote]``
+section of ``objectconfig.ini``. 
+
+Client Side: From CLI
+------------------------
+
+(Note: The format of response that is returned for a CLI client is different from what is returned to zm_detect.
+zm_detect uses a different format suited for its own needs)
+
+To invoke detection from CLI, you need to:
 
 Client Side:
 
@@ -155,6 +177,8 @@ returns
 ", "confidence": "72.66%", "box": [615, 219, 659, 279]}]
 ```
 
+ Note that the server stores the images and the objects detected inside its `images/` folder. If you want the server to delete them after analysis add `&delete=true` to the query parameters.
+
 
 Live Streams or Recorded Video files
 ======================================
@@ -167,9 +191,3 @@ Full Example
 Take a look at [stream.py](https://github.com/pliablepixels/mlapi/blob/master/examples/stream.py). This program reads any media source and/or webcam and invokes detection via the API gateway
 
 
-Other Notes
-============
-
-- The first time you invoke a query, the ML engine inside will download weights/models and will take time. That will only happen once and from then on, it will be much faster
-
-- Note that the server stores the images and the objects detected inside its `images/` folder. If you want the server to delete them after analysis add `&delete=true` to the query parameters.
