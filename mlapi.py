@@ -303,6 +303,8 @@ if g.config['ml_sequence'] and g.config['use_sequence'] == 'yes':
 else:
     g.logger.Debug(2,'mapping legacy ml data from config')
     ml_options = utils.convert_config_to_ml_sequence()
+    g.config['ml_options'] = ml_options
+
 
 # stream options will come from zm_detect
 
