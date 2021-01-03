@@ -115,9 +115,10 @@ class Detect(Resource):
 
         if req:
             stream = req.get('stream')
-            stream_options = req.get('stream_options')
-            stream_options['api'] = zmapi
-            ml_overrides = req.get('ml_overrides')
+            stream_options = req.get('stream_options',{})
+            if stream_options:
+                stream_options['api'] = zmapi
+            ml_overrides = req.get('ml_overrides',{})
         #g.log.Info ('I GOT: {} and {}'.format(stream, stream_options))        
         if args['type'] == 'face_names':
             g.log.Debug (1,'List of face names requested')

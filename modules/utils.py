@@ -183,6 +183,7 @@ def process_config(args):
                 zmlog.init(name='zm_mlapi',override=g.config['pyzm_overrides'])
                 g.log = zmlog
                 g.logger=g.log
+                g.logger.Info('Switched to ZM logs')
         
 
         if config_file.has_option('general','secrets'):
