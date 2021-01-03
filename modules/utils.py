@@ -14,6 +14,7 @@ g.config = {}
 
 def convert_config_to_ml_sequence():
     ml_options={}
+
     for ds in g.config['detection_sequence']:
         if ds == 'object':
         
@@ -203,8 +204,8 @@ def process_config(args):
     
         # first, fill in config with default values
         for k,v in g.config_vals.items():
-           
-            g.config[k] = v.get('default', None)
+            val = v.get('default', None)
+            g.config[k] = _correct_type(val, v['type'])
             #print ('{}={}'.format(k,g.config[k]))
             
         # now iterate the file
