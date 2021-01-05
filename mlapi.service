@@ -8,9 +8,8 @@
 
 # To make this persistent
 # sudo cp mlapi.service /etc/systemd/system
-# sudo systemctl enable mlapi.service
 # sudo chmod 644 /etc/systemd/system/mlapi.service
-# sudo systemctl enable mlapi
+# sudo systemctl enable mlapi.service
 
 # To start, 
 # sudo systemctl start mlapi
@@ -32,7 +31,13 @@ WorkingDirectory=/var/lib/zmeventnotification/mlapi
 # Change to your username
 User=www-data
 #Change paths if needed
-ExecStart=/usr/bin/python3 -u mlapi.py -c ./mlapiconfig.ini
+ExecStart=/var/lib/zmeventnotification/mlapi/mlapi.py -c ./mlapiconfig.ini
+ExecStartPost=+/bin/sh -c 'umask 022; pgrep mlapi.py > /var/run/mlapi.pid'
+
+
+# Note that if you enable use_zm_logs=yes in mlapiconfig.ini
+# you can comment these out. If you enable use_zm_logs, the logs 
+# will be written in ZM log format to <path to zm logs>/zm_mlapi.log 
 StandardOutput=file:/var/log/zm/mlapi.log
 StandardError=file:/var/log/zm/mlapi_error.log
 

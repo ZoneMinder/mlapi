@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from flask import Flask, send_file, request, jsonify, render_template
 import requests as py_requests
 from flask_restful import Resource, Api, reqparse, abort, inputs
