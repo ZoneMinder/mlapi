@@ -5,6 +5,7 @@ import getpass
 
 import modules.db as Database
 
+g.config['db_path']='./db'
 db = Database.Database()
 
 print ('--------------- User Creation ------------')
