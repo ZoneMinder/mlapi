@@ -8,14 +8,14 @@ class Database:
     def _get_hash(self,password):
         return bcrypt.hash(password)
     
-    def __init__(self):
+    def __init__(self, prompt_to_create=True):
         db = g.config['db_path']+'/db.json'
         g.log.Debug (1,'Opening DB at {}'.format(db))
         self.db = TinyDB(db)
         self.users = self.db.table('users')
         self.query = Query()
         g.log.Debug (1,'DB engine ready')
-        if not len(self.users):
+        if not len(self.users) and prompt_to_create:
             g.log.Debug (1,'Initializing default users')
 
             print ('--------------- User Creation ------------')

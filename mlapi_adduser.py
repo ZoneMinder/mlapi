@@ -15,11 +15,12 @@ ap.add_argument('-f', '--force', help='force overwrite user', action='store_true
 args, u = ap.parse_known_args()
 args = vars(args)
 
+
 g.config['db_path']= args.get('dbpath')
 
-db = Database.Database()
+db = Database.Database(prompt_to_create=False)
 
-if not args.get('user') and not args.get('password'):
+if not args.get('user') or not args.get('password'):
     print ('--------------- User Creation ------------')
     while True:
         name = input ('\nuser name (Ctrl+C to exit):')
