@@ -114,6 +114,7 @@ class Detect(Resource):
         fi = None
         stream_options={}
         stream = None 
+        ml_overrides = {}
 
         if req:
             stream = req.get('stream')
