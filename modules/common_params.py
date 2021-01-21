@@ -163,7 +163,7 @@ config_vals = {
         },
         'object_labels':{
             'section': 'object',
-            'default': 'models/yolov3/yolov3_classes.txt',
+            'default': 'models/yolov3/coco.names',
             'type': 'string'
         },
        
