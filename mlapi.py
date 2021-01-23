@@ -118,10 +118,11 @@ class Detect(Resource):
 
         if req:
             stream = req.get('stream')
-            stream_options = req.get('stream_options',{})
-            if stream_options:
-                stream_options['api'] = zmapi
-            ml_overrides = req.get('ml_overrides',{})
+            if stream:
+                stream_options = req.get('stream_options',{})
+                if stream_options:
+                    stream_options['api'] = zmapi
+                ml_overrides = req.get('ml_overrides',{})
         #g.log.Info ('I GOT: {} and {}'.format(stream, stream_options))        
         if args['type'] == 'face_names':
             g.log.Debug (1,'List of face names requested')
@@ -286,9 +287,9 @@ api_options  = {
 g.log.set_level(5)
 
 if not api_options.get('apiurl') or not api_options.get('portalurl'):
-    g.log.Fatal('Missing API and/or Portal URLs. Your secrets file probably doesn\'t have these values')
-
-zmapi = zmapi.ZMApi(options=api_options, logger=g.log)
+    g.log.Info('Missing API and/or Portal URLs. Your secrets file probably doesn\'t have these values')
+else:
+    zmapi = zmapi.ZMApi(options=api_options, logger=g.log)
 
      
 
