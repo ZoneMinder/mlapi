@@ -46,10 +46,10 @@ then
     EXCLUDE_PATTERN="${EXCLUDE_PATTERN} --exclude mlapiconfig.ini"
 fi
 
-if [ -d "${TARGET_MLAPI_DIR}/mlapiconfig.ini" ]
+if [ -d "${TARGET_MLAPI_DIR}/secrets.ini" ]
 then
-    echo "Skipping mlapiconfig.ini as it already exists in: ${TARGET_MLAPI_DIR}"
-    EXCLUDE_PATTERN="${EXCLUDE_PATTERN} --exclude mlapiconfig.ini"
+    echo "Skipping secrets.ini directory as it already exists in: ${TARGET_MLAPI_DIR}"
+    EXCLUDE_PATTERN="${EXCLUDE_PATTERN} --exclude secrets.ini"
 fi
 
 if [ -d "${TARGET_MLAPI_DIR}/known_faces" ]
@@ -70,6 +70,8 @@ ${RSYNC} . ${TARGET_MLAPI_DIR} ${EXCLUDE_PATTERN}
 #cp -R * "${TARGET_MLAPI_DIR}/"
 install -m 755 -o "www-data" -g "www-data" mlapi.py "${TARGET_MLAPI_DIR}" 
 install -m 755 -o "www-data" -g "www-data" mlapi_logrot.sh "${TARGET_MLAPI_DIR}" 
+install -m 755 -o "www-data" -g "www-data" mlapi_face_train.sh "${TARGET_MLAPI_DIR}" 
+
 
 chown -R www-data:www-data ${TARGET_MLAPI_DIR}
 
