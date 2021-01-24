@@ -59,11 +59,11 @@ class Database:
         return self.users.get(self.query.name == user)
 
     def delete_user(self,user):
-        self.users.remove(where('name')=='admin')
+        return self.users.remove(where('name')==user)
 
     def add_user(self, user,password):
         hashed_password = self._get_hash(password)
-        self.users.upsert({'name':user, 'password':hashed_password}, self.query.name == user)
+        return self.users.upsert({'name':user, 'password':hashed_password}, self.query.name == user)
 
 
 
