@@ -45,10 +45,10 @@ class Database:
         stored_password_hash = user_object.get('password')
        
         if not bcrypt.verify(supplied_password, stored_password_hash):
-            g.log.Debug (1,'Hashes do NOT match')
+            g.log.Debug (1,'Hashes do NOT match: incorrect password')
             return False
         else:
-            g.log.Debug (1,'Hashes are correct')
+            g.log.Debug (1,'Hashes are correct: password matched')
             return  True
 
 
