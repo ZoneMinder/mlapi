@@ -77,7 +77,7 @@ INSTALL_CORAL_EDGETPU=yes ./get_models.sh
 Running
 ========
 
-Before you run, you need to create at least one user. Use `python3 mlapi_adduser.py` for that
+Before you run, you need to create at least one user. Use `python3 mlapi_dbuser.py` for that. Do a `python3 mlapi_dbuser.py --help` for options.
 
 Server: Manually
 ------------------
