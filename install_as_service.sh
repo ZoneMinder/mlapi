@@ -6,7 +6,8 @@
 #-----------------------------------------------------
 
 
-TARGET_MLAPI_DIR=/var/lib/zmeventnotification/mlapi
+TARGET_MLAPI_DIR="/var/lib/zmeventnotification/mlapi"
+RSYNC="rsync -av --progress"
 
 echo "This is really just my internal script to run mlapi as a service"
 echo "You probably need to modify mlapi.service and this script"
@@ -30,15 +31,53 @@ then
     mkdir -p "${TARGET_MLAPI_DIR}"
 fi
 
-echo "Copying files to ${TARGET_MLAPI_DIR}"
-cp -R * "${TARGET_MLAPI_DIR}/"
+echo "Syncing files to ${TARGET_MLAPI_DIR}"
+EXCLUDE_PATTERN="--exclude .git"
+
+if [ -d "${TARGET_MLAPI_DIR}/db" ]
+then
+    echo "Skipping db directory as it already exists in: ${TARGET_MLAPI_DIR}"
+    EXCLUDE_PATTERN="${EXCLUDE_PATTERN} --exclude db"
+fi
+
+if [ -d "${TARGET_MLAPI_DIR}/mlapiconfig.ini" ]
+then
+    echo "Skipping mlapiconfig.ini directory as it already exists in: ${TARGET_MLAPI_DIR}"
+    EXCLUDE_PATTERN="${EXCLUDE_PATTERN} --exclude mlapiconfig.ini"
+fi
+
+if [ -d "${TARGET_MLAPI_DIR}/mlapiconfig.ini" ]
+then
+    echo "Skipping mlapiconfig.ini as it already exists in: ${TARGET_MLAPI_DIR}"
+    EXCLUDE_PATTERN="${EXCLUDE_PATTERN} --exclude mlapiconfig.ini"
+fi
+
+if [ -d "${TARGET_MLAPI_DIR}/known_faces" ]
+then
+    echo "Skipping known_faces directory as it already exists in: ${TARGET_MLAPI_DIR}"
+    EXCLUDE_PATTERN="${EXCLUDE_PATTERN} --exclude known_faces"
+fi
+
+if [ -d "${TARGET_MLAPI_DIR}/unknown_faces" ]
+then
+    echo "Skipping unknown_faces directory as it already exists in: ${TARGET_MLAPI_DIR}"
+    EXCLUDE_PATTERN="${EXCLUDE_PATTERN} --exclude unknown_faces"
+fi
+
+echo ${RSYNC} . ${TARGET_MLAPI_DIR} ${EXCLUDE_PATTERN}
+${RSYNC} . ${TARGET_MLAPI_DIR} ${EXCLUDE_PATTERN}
+
+#cp -R * "${TARGET_MLAPI_DIR}/"
 install -m 755 -o "www-data" -g "www-data" mlapi.py "${TARGET_MLAPI_DIR}" 
 install -m 755 -o "www-data" -g "www-data" mlapi_logrot.sh "${TARGET_MLAPI_DIR}" 
+
+chown -R www-data:www-data ${TARGET_MLAPI_DIR}
 
 echo "Copying service file"
 cp mlapi.service /etc/systemd/system
 chmod 644 /etc/systemd/system/mlapi.service
 systemctl enable mlapi.service 
+
 
 echo "Starting mlapi service"
 systemctl daemon-reload
