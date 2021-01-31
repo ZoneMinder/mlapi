@@ -10,6 +10,8 @@ log = g_log.ConsoleLog()
 logger = log
 
 config = {}
+monitor_config = {}
+monitor_polypatterns = {}
 config_vals = {
          'secrets':{
             'section': 'general',

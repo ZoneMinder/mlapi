@@ -179,12 +179,15 @@ def process_config(args):
         if config_file.has_option('general', 'use_zm_logs'):
             use_zm_logs = config_file.get('general', 'use_zm_logs')
             if use_zm_logs == 'yes':
-                import pyzm.ZMLog as zmlog
-                g.logger.Info ('Switching to ZM logs from here on...')
-                zmlog.init(name='zm_mlapi',override=g.config['pyzm_overrides'])
-                g.log = zmlog
-                g.logger=g.log
-                g.logger.Info('Switched to ZM logs')
+                try:
+                    import pyzm.ZMLog as zmlog
+                    zmlog.init(name='zm_mlapi',override=g.config['pyzm_overrides'])
+                except Exception as e:
+                    g.logger.Error ('Not able to switch to ZM logs: {}'.format(e))
+                else:
+                    g.log = zmlog
+                    g.logger=g.log
+                    g.logger.Info('Switched to ZM logs')
         
 
         if config_file.has_option('general','secrets'):
@@ -202,28 +205,63 @@ def process_config(args):
             g.logger.Debug (1,'No secrets file configured')
         # now read config values
     
+        g.polygons = []
+        poly_patterns = []
         # first, fill in config with default values
         for k,v in g.config_vals.items():
             val = v.get('default', None)
             g.config[k] = _correct_type(val, v['type'])
             #print ('{}={}'.format(k,g.config[k]))
-            
+        
+       
         # now iterate the file
         for sec in config_file.sections():
             if sec == 'secrets':
                 continue
-            for (k, v) in config_file.items(sec):
-                if g.config_vals.get(k):
-                    _set_config_val(k,g.config_vals[k] )
-                else:
-                    #g.logger.Debug(4, 'storing unknown attribute {}={}'.format(k,v))
-                    g.config[k] = v 
-                    #_set_config_val(k,{'section': sec, 'default': None, 'type': 'string'} )
-        
-         # Now lets make sure we take care of parameter substitutions {{}}
+            
+            # Move monitor specific stuff to a different structure
+            if section.lower().startswith('monitor-'):
+                ts = section.split('-')
+                if len(ts) != 2:
+                    g.logger.Error('Skipping section:{} - could not derive monitor name. Expecting monitor-NUM format')
+                    continue 
+
+                g.logger.Debug ('Found monitor specific section for monitor: {}'.format(mid),2)
+                mid = ts[1]
+                g.monitor_polypatterns[mid] = []
+                g.monitor_config[mid] = []
+                for item in config_file[sec].items():
+                    k = item[0]
+                    v = item[1]
+                    if k.endswith('_zone_detection_pattern'):
+                        zone_name = k.split('_zone_detection_pattern')[0]
+                        g.logger.Debug(2, 'found zone specific pattern:{} storing'.format(zone_name))
+                        g.monitor_polypatterns[mid].append({'name': zone_name, 'pattern':v})
+                        continue
+                    else:
+                        if k in g.config_vals:
+                        # This means its a legit config key that needs to be overriden
+                            g.logger.Debug(4,'[{}] overrides key:{} with value:{}'.format(sec, k, v))
+                            
+                            g.monitor_config[mid].append({ 'key':k, 'value':_correct_type(v,g.config_vals[k]['type'])})
+                        else:
+                            if k.startswith(('object_','face_', 'alpr_')):
+                                g.logger.Debug(2,'assuming {} is an ML sequence'.format(k))
+                            # TBD only_triggered_zones
+                            g.monitor_config[mid].append({ 'key':k, 'value':v})
+
+            # Not monitor specific stuff
+            else: 
+                for (k, v) in config_file.items(sec):
+                    if k in g.config_vals:
+                        _set_config_val(k,g.config_vals[k] )
+                    else:
+                        #g.logger.Debug(4, 'storing unknown attribute {}={}'.format(k,v))
+                        g.config[k] = v 
+                        #_set_config_val(k,{'section': sec, 'default': None, 'type': 'string'} )
+
+        # Parameter substitution
         g.logger.Debug (4,'Finally, doing parameter substitution')
-
-
         p = r'{{(\w+?)}}'
         for gk, gv in g.config.items():
             #input ('Continue')
