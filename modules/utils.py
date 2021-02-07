@@ -8,9 +8,12 @@ import cv2
 import re
 import ast
 import traceback
+import pyzm.helpers.utils as pyzmutils
 
 g.config = {}
 
+def str2tuple(str):
+    return [tuple(map(int, x.strip().split(','))) for x in str.split(' ')]
 
 def convert_config_to_ml_sequence():
     ml_options={}
@@ -220,16 +223,31 @@ def process_config(args):
                 continue
             
             # Move monitor specific stuff to a different structure
-            if section.lower().startswith('monitor-'):
-                ts = section.split('-')
+            if sec.lower().startswith('monitor-'):
+                ts = sec.split('-')
                 if len(ts) != 2:
                     g.logger.Error('Skipping section:{} - could not derive monitor name. Expecting monitor-NUM format')
                     continue 
 
-                g.logger.Debug ('Found monitor specific section for monitor: {}'.format(mid),2)
-                mid = ts[1]
+                mid = int(ts[1])
+                g.logger.Debug (2,'Found monitor specific section for monitor: {}'.format(mid))
+
                 g.monitor_polypatterns[mid] = []
-                g.monitor_config[mid] = []
+                g.monitor_config[mid] = {}
+                # Copy the sequence into each monitor because when we do variable subs
+                # later, we will use this for monitor specific work
+                try:
+                    ml = config_file.get('ml', 'ml_sequence')
+                    g.monitor_config[mid]['ml_sequence']=ml
+                except:
+                    g.logger.Debug (4, 'ml sequence not found in globals')
+                     
+                try:
+                    ss = config_file.get('ml', 'stream_sequence')
+                    g.monitor_config[mid]['stream_sequence']=ss
+                except:
+                    g.logger.Debug (4, 'stream sequence not found in globals')
+                     
                 for item in config_file[sec].items():
                     k = item[0]
                     v = item[1]
@@ -242,13 +260,21 @@ def process_config(args):
                         if k in g.config_vals:
                         # This means its a legit config key that needs to be overriden
                             g.logger.Debug(4,'[{}] overrides key:{} with value:{}'.format(sec, k, v))
-                            
-                            g.monitor_config[mid].append({ 'key':k, 'value':_correct_type(v,g.config_vals[k]['type'])})
+                            g.monitor_config[mid][k]=_correct_type(v,g.config_vals[k]['type'])
+                           # g.monitor_config[mid].append({ 'key':k, 'value':_correct_type(v,g.config_vals[k]['type'])})
                         else:
                             if k.startswith(('object_','face_', 'alpr_')):
                                 g.logger.Debug(2,'assuming {} is an ML sequence'.format(k))
+                                g.monitor_config[mid][k] = v
+                            else:
+                                try:
+                                    g.monitor_polypatterns[mid].append({'name': k, 'value': str2tuple(v),'pattern': None})
+                                    g.logger.Debug(2,'adding polygon: {} [{}]'.format(k, v ))
+                                except Exception as e:
+                                    g.monitor_config[mid][k]=v
+
+
                             # TBD only_triggered_zones
-                            g.monitor_config[mid].append({ 'key':k, 'value':v})
 
             # Not monitor specific stuff
             else: 
@@ -260,8 +286,12 @@ def process_config(args):
                         g.config[k] = v 
                         #_set_config_val(k,{'section': sec, 'default': None, 'type': 'string'} )
 
+        
+
+
         # Parameter substitution
-        g.logger.Debug (4,'Finally, doing parameter substitution')
+
+        g.logger.Debug (4,'Doing parameter substitution for globals')
         p = r'{{(\w+?)}}'
         for gk, gv in g.config.items():
             #input ('Continue')
@@ -278,16 +308,58 @@ def process_config(args):
                         new_val = g.config[gk].replace('{{' + match_key + '}}',str(g.config[match_key]))
                         g.config[gk] = new_val
                         gv = new_val
+                    
                     else:
                         g.logger.Debug(4, 'substitution key: {} not found'.format(match_key))
                 if not replaced:
                     break
+
+        g.logger.Debug (4,'Doing parameter substitution for monitor specific entities')
+        p = r'{{(\w+?)}}'
+        for mid in g.monitor_config:
+            for key in g.monitor_config[mid]:
+                #input ('Continue')
+                #print(f"PROCESSING {gk} {gv}")
+                gk = key
+                gv = g.monitor_config[mid][key]
+                gv = '{}'.format(gv)
+                #if not isinstance(gv, str):
+                #    continue
+                while True:
+                    matches = re.findall(p,gv)
+                    replaced = False
+                    for match_key in matches:
+                        if match_key in g.monitor_config[mid]:
+                            replaced = True
+                            new_val =gv.replace('{{' + match_key + '}}',str(g.monitor_config[mid][match_key]))
+                            gv = new_val
+                            g.monitor_config[mid][key] = gv 
+                        elif match_key in g.config:
+                            replaced = True
+                            new_val =gv.replace('{{' + match_key + '}}',str(g.config[match_key]))
+                            gv = new_val
+                            g.monitor_config[mid][key] = gv
+                        else:
+                            g.logger.Debug(4, 'substitution key: {} not found'.format(match_key))
+                    if not replaced:
+                        break
+            
+            #secrets = pyzmutils.read_config(g.config['secrets'])
+            #g.monitor_config[mid]['ml_sequence'] = pyzmutils.template_fill(input_str=g.monitor_config[mid]['ml_sequence'], config=None, secrets=secrets._sections.get('secrets'))
+            #g.monitor_config[mid]['ml_sequence'] = ast.literal_eval(g.monitor_config[mid]['ml_sequence'])
+
+            #g.monitor_config[mid]['stream_sequence'] = pyzmutils.template_fill(input_str=g.monitor_config[mid]['stream_sequence'], config=None, secrets=secrets._sections.get('secrets'))
+            #g.monitor_config[mid]['stream_sequence'] = ast.literal_eval(g.monitor_config[mid]['stream_sequence'])
+
+
+        #print ("GLOBALS={}".format(g.config))
+        print ("\n\nMID_SPECIFIC={}".format(g.monitor_config))
+        print ("\n\nMID POLYPATTERNS={}".format(g.monitor_polypatterns))
                     
     except Exception as e:
         g.logger.Error('Error parsing config:{}'.format(args['config']))
         g.logger.Error('Error was:{}'.format(e))
         g.logger.Fatal('error: Traceback:{}'.format(traceback.format_exc()))
-
         exit(0)
 
 

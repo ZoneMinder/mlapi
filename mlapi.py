@@ -19,6 +19,7 @@ import cv2
 import uuid
 import numpy as np
 import argparse
+import copy
 
 import modules.common_params as g
 import modules.db as Database
@@ -115,14 +116,54 @@ class Detect(Resource):
         stream_options={}
         stream = None 
         ml_overrides = {}
+        config_copy = None 
+        ml_options_copy = None 
+        ml_options = None
+        
 
-        if req:
-            stream = req.get('stream')
-            if stream:
-                stream_options = req.get('stream_options',{})
-                if stream_options:
-                    stream_options['api'] = zmapi
-                ml_overrides = req.get('ml_overrides',{})
+        if not req:
+            abort(400, msg='Empty request')
+
+        if req.get('mid') and g.monitor_config.get(int(req.get('mid'))):
+            mid = int(req.get('mid'))
+            g.logger.Debug (1, f'Monitor ID {mid} provided & matching config found in mlapi, ignoring objectconfig.ini')
+            config_copy = copy.copy(g.config)
+
+            for key in g.monitor_config[mid]:
+                # This will also take care of copying over mid specific stream_options
+                g.logger.Debug(4, 'Overriding global {} with {}'.format(key, g.monitor_config[mid][key]))
+                g.config[key] = g.monitor_config[mid][key]
+            
+            
+            if g.config['ml_sequence'] and g.config['use_sequence'] == 'yes':
+                g.log.Debug(2,'using ml_sequence')
+                ml_options = g.config['ml_sequence']
+                secrets = pyzmutils.read_config(g.config['secrets'])
+                ml_options = pyzmutils.template_fill(input_str=ml_options, config=None, secrets=secrets._sections.get('secrets'))
+                ml_options = ast.literal_eval(ml_options)
+                #print (ml_options)
+            else:
+                g.logger.Debug(2,'mapping legacy ml data from config')
+                ml_options = utils.convert_config_to_ml_sequence()
+
+            g.logger.Debug (4, 'Overwriting ml_sequence of pre loaded model')
+            print ("NEW CONFIG: TYPE:{} ==> {}".format(type(ml_options), ml_options))
+            m.set_ml_options(ml_options)  
+        else:
+            g.logger.Debug(1,f'Monitor ID not specified, or not found in mlapi config, using zm_detect overrides')
+            ml_overrides = req.get('ml_overrides',{})
+     
+        if g.config.get('stream_sequence'):
+            g.logger.Debug(4, 'Found stream_sequence in mlapi config, ignoring objectconfig.ini')
+            stream_options = ast.literal_eval(g.config.get('stream_sequence'))
+        else:
+            stream_options = req.get('stream_options')
+        if not stream_options:
+                abort(400, msg='No stream options found')
+        stream_options['api'] = zmapi
+
+        stream = req.get('stream')
+           
         #g.log.Info ('I GOT: {} and {}'.format(stream, stream_options))        
         if args['type'] == 'face_names':
             g.log.Debug (1,'List of face names requested')
@@ -154,10 +195,12 @@ class Detect(Resource):
 
         g.log.Debug (1, f'Calling detect streams with {stream} and {stream_options} and ml_overrides={ml_overrides} ml_options={ml_options}')
         #print (f'************************ {args}')
-
         matched_data,all_matches = m.detect_stream(stream=stream, options=stream_options, ml_overrides=ml_overrides)
+        if config_copy:
+            g.log.Debug(4, 'Restoring global config & ml_options')
+            g.config = config_copy
+
         matched_data['image'] = None
-       
         if args.get('response_format') == 'zm_detect':
             resp_obj= {
                 'matched_data': matched_data,
