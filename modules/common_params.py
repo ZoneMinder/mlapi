@@ -18,6 +18,31 @@ config_vals = {
             'default': None,
             'type': 'string',
         },
+         'portal':{
+            'section': 'general',
+            'default': '',
+            'type': 'string',
+        },
+        'api_portal':{
+            'section': 'general',
+            'default': '',
+            'type': 'string',
+        },
+        'user':{
+            'section': 'general',
+            'default': None,
+            'type': 'string'
+        },
+        'password':{
+            'section': 'general',
+            'default': None,
+            'type': 'string'
+        },
+        'import_zm_zones':{
+            'section': 'general',
+            'default': 'no',
+            'type': 'string',
+        },
          'cpu_max_processes':{
             'section': 'general',
             'default': '1',

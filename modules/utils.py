@@ -15,6 +15,38 @@ g.config = {}
 def str2tuple(str):
     return [tuple(map(int, x.strip().split(','))) for x in str.split(' ')]
 
+
+def check_and_import_zones(api):
+    match_reason = False # not supported
+    for mid in g.monitor_polypatterns:
+        if g.monitor_config[mid].get('import_zm_zones') == 'no':
+            continue
+        elif g.config['import_zm_zones'] == 'no':
+            continue
+        url = '{}/api/zones/forMonitor/{}.json'.format(g.config.get('portal'),mid)        
+        print (url)
+        j = api._make_request(url=url, type='get')
+        for item in j.get('zones'):
+        #print ('********* ITEM TYPE {}'.format(item['Zone']['Type']))
+            if item['Zone']['Type'] == 'Inactive':
+                g.logger.Debug(2, 'Skipping {} as it is inactive'.format(item['Zone']['Name']))
+                continue
+            if  match_reason:
+                if not findWholeWord(item['Zone']['Name'])(reason):
+                    g.logger.Debug(1,'dropping {} as zones in alarm cause is {}'.format(item['Zone']['Name'], reason))
+                    continue
+            item['Zone']['Name'] = item['Zone']['Name'].replace(' ','_').lower()
+            g.logger.Debug(2,'importing zoneminder polygon: {} [{}]'.format(item['Zone']['Name'], item['Zone']['Coords']))
+            g.monitor_polypatterns[mid].append({
+                'name': item['Zone']['Name'],
+                'value': str2tuple(item['Zone']['Coords']),
+                'pattern': None
+
+            })
+    #g.monitor_polypatterns[mid] = []
+    
+
+
 def convert_config_to_ml_sequence():
     ml_options={}
 
@@ -344,7 +376,7 @@ def process_config(args):
                     if not replaced:
                         break
             
-            #secrets = pyzmutils.read_config(g.config['secrets'])
+            secrets = pyzmutils.read_config(g.config['secrets'])
             #g.monitor_config[mid]['ml_sequence'] = pyzmutils.template_fill(input_str=g.monitor_config[mid]['ml_sequence'], config=None, secrets=secrets._sections.get('secrets'))
             #g.monitor_config[mid]['ml_sequence'] = ast.literal_eval(g.monitor_config[mid]['ml_sequence'])
 
@@ -353,8 +385,8 @@ def process_config(args):
 
 
         #print ("GLOBALS={}".format(g.config))
-        print ("\n\nMID_SPECIFIC={}".format(g.monitor_config))
-        print ("\n\nMID POLYPATTERNS={}".format(g.monitor_polypatterns))
+        #print ("\n\nMID_SPECIFIC={}".format(g.monitor_config))
+        #print ("\n\nMID POLYPATTERNS={}".format(g.monitor_polypatterns))
                     
     except Exception as e:
         g.logger.Error('Error parsing config:{}'.format(args['config']))

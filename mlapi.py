@@ -117,7 +117,7 @@ class Detect(Resource):
         stream = None 
         ml_overrides = {}
         config_copy = None 
-        ml_options_copy = None 
+        poly_copy = None 
         ml_options = None
         
 
@@ -128,7 +128,9 @@ class Detect(Resource):
             mid = int(req.get('mid'))
             g.logger.Debug (1, f'Monitor ID {mid} provided & matching config found in mlapi, ignoring objectconfig.ini')
             config_copy = copy.copy(g.config)
+            poly_copy = copy.copy(g.polygons)
 
+            g.polygons = g.monitor_polypatterns[mid]
             for key in g.monitor_config[mid]:
                 # This will also take care of copying over mid specific stream_options
                 g.logger.Debug(4, 'Overriding global {} with {}'.format(key, g.monitor_config[mid][key]))
@@ -161,6 +163,7 @@ class Detect(Resource):
         if not stream_options:
                 abort(400, msg='No stream options found')
         stream_options['api'] = zmapi
+        stream_options['polygons'] = g.polygons
 
         stream = req.get('stream')
            
@@ -199,6 +202,7 @@ class Detect(Resource):
         if config_copy:
             g.log.Debug(4, 'Restoring global config & ml_options')
             g.config = config_copy
+            g.polygons = poly_copy
 
         matched_data['image'] = None
         if args.get('response_format') == 'zm_detect':
@@ -318,12 +322,16 @@ api.add_resource(Detect, '/detect/object')
 api.add_resource(Health, '/health')
 
 secrets_conf = pyzmutils.read_config(g.config['secrets'])
+g.config['api_portal'] = g.config['api_portal'] or pyzmutils.get(key='ZM_API_PORTAL', section='secrets', conf=secrets_conf)
+g.config['portal'] = g.config['portal'] or pyzmutils.get(key='ZM_PORTAL', section='secrets', conf=secrets_conf)
+g.config['user'] = g.config['user'] or pyzmutils.get(key='ZM_USER', section='secrets', conf=secrets_conf)
+g.config['password'] = g.config['password'] or pyzmutils.get(key='ZM_PASSWORD', section='secrets', conf=secrets_conf)
 
 api_options  = {
-    'apiurl': pyzmutils.get(key='ZM_API_PORTAL', section='secrets', conf=secrets_conf),
-    'portalurl':pyzmutils.get(key='ZM_PORTAL', section='secrets', conf=secrets_conf),
-    'user': pyzmutils.get(key='ZM_USER', section='secrets', conf=secrets_conf),
-    'password': pyzmutils.get(key='ZM_PASSWORD', section='secrets', conf=secrets_conf),
+    'apiurl': g.config['api_portal'],
+    'portalurl':g.config['portal'],
+    'user':g.config['user'] ,
+    'password': g.config['password'],
     'disable_ssl_cert_check':False if g.config['allow_self_signed']=='no' else True
 }
 
@@ -333,6 +341,8 @@ if not api_options.get('apiurl') or not api_options.get('portalurl'):
     g.log.Info('Missing API and/or Portal URLs. Your secrets file probably doesn\'t have these values')
 else:
     zmapi = zmapi.ZMApi(options=api_options, logger=g.log)
+    utils.check_and_import_zones(zmapi)
+
 
      
 
