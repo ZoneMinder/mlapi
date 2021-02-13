@@ -169,6 +169,18 @@ class Detect(Resource):
         else:
             g.logger.Debug(1,f'Monitor ID not specified, or not found in mlapi config, using zm_detect overrides')
             ml_overrides = req.get('ml_overrides',{})
+            if g.config['ml_sequence'] and g.config['use_sequence'] == 'yes':
+                g.log.Debug(2,'using ml_sequence')
+                ml_options = g.config['ml_sequence']
+                secrets = pyzmutils.read_config(g.config['secrets'])
+                ml_options = pyzmutils.template_fill(input_str=ml_options, config=None, secrets=secrets._sections.get('secrets'))
+                ml_options = ast.literal_eval(ml_options)
+                #print (ml_options)
+            else:
+                g.logger.Debug(2,'mapping legacy ml data from config')
+                ml_options = utils.convert_config_to_ml_sequence()
+
+            #print (ml_options)
      
         if g.config.get('stream_sequence'):
             g.logger.Debug(4, 'Found stream_sequence in mlapi config, ignoring objectconfig.ini')
@@ -214,6 +226,8 @@ class Detect(Resource):
         g.log.Debug (1, f'Calling detect streams with {stream} and {stream_options} and ml_overrides={ml_overrides} ml_options={ml_options}')
         #print (f'************************ {args}')
         matched_data,all_matches = m.detect_stream(stream=stream, options=stream_options, ml_overrides=ml_overrides)
+        local_polygons = g.polygons
+
         if config_copy:
             g.log.Debug(4, 'Restoring global config & ml_options')
             g.config = config_copy
@@ -223,7 +237,8 @@ class Detect(Resource):
         if args.get('response_format') == 'zm_detect':
             resp_obj= {
                 'matched_data': matched_data,
-                'all_matches': all_matches
+                'all_matches': all_matches,
+                'polygons': local_polygons
             }
             g.log.Debug (1, 'Returning {}'.format(resp_obj))
             return resp_obj
