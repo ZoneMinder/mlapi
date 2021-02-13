@@ -131,11 +131,26 @@ class Detect(Resource):
             poly_copy = copy.copy(g.polygons)
 
             g.polygons = g.monitor_polypatterns[mid]
+
+
             for key in g.monitor_config[mid]:
                 # This will also take care of copying over mid specific stream_options
                 g.logger.Debug(4, 'Overriding global {} with {}'.format(key, g.monitor_config[mid][key]))
                 g.config[key] = g.monitor_config[mid][key]
             
+
+            # At this stage, polygons has a copy of that monitor polygon set
+            # g.config has overriden values of config from the mid 
+
+            r = req.get('reason')
+            if r and g.config['only_triggered_zm_zones'] == 'yes' and g.config['import_zm_zones'] == 'yes':
+                g.logger.Debug(4, 'Only filtering polygon names that have {}'.format(r))
+                r =r.replace(' ','_').lower()
+                g.logger.Debug(4, 'Original polygons being used: {}'.format(g.polygons))
+
+                g.polygons[:] = [item for item in g.polygons if utils.findWholeWord(item['name'])(r)]
+                g.logger.Debug(4, 'Final polygons being used: {}'.format(g.polygons))
+                
             
             if g.config['ml_sequence'] and g.config['use_sequence'] == 'yes':
                 g.log.Debug(2,'using ml_sequence')
@@ -149,7 +164,7 @@ class Detect(Resource):
                 ml_options = utils.convert_config_to_ml_sequence()
 
             g.logger.Debug (4, 'Overwriting ml_sequence of pre loaded model')
-            print ("NEW CONFIG: TYPE:{} ==> {}".format(type(ml_options), ml_options))
+            g.logger.Debug (4, "REMOVE ME: NEW CONFIG: TYPE:{} ==> {}".format(type(ml_options), ml_options))
             m.set_ml_options(ml_options)  
         else:
             g.logger.Debug(1,f'Monitor ID not specified, or not found in mlapi config, using zm_detect overrides')

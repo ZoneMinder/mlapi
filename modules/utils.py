@@ -16,8 +16,11 @@ def str2tuple(str):
     return [tuple(map(int, x.strip().split(','))) for x in str.split(' ')]
 
 
+# credit: https://stackoverflow.com/a/5320179
+def findWholeWord(w):
+    return re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search
+
 def check_and_import_zones(api):
-    match_reason = False # not supported
     for mid in g.monitor_polypatterns:
         if g.monitor_config[mid].get('import_zm_zones') == 'no':
             continue
@@ -31,10 +34,7 @@ def check_and_import_zones(api):
             if item['Zone']['Type'] == 'Inactive':
                 g.logger.Debug(2, 'Skipping {} as it is inactive'.format(item['Zone']['Name']))
                 continue
-            if  match_reason:
-                if not findWholeWord(item['Zone']['Name'])(reason):
-                    g.logger.Debug(1,'dropping {} as zones in alarm cause is {}'.format(item['Zone']['Name'], reason))
-                    continue
+         
             item['Zone']['Name'] = item['Zone']['Name'].replace(' ','_').lower()
             g.logger.Debug(2,'importing zoneminder polygon: {} [{}]'.format(item['Zone']['Name'], item['Zone']['Coords']))
             g.monitor_polypatterns[mid].append({

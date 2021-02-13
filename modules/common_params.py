@@ -43,6 +43,11 @@ config_vals = {
             'default': 'no',
             'type': 'string',
         },
+        'only_triggered_zm_zones':{
+            'section': 'general',
+            'default': 'no',
+            'type': 'string',
+        },
          'cpu_max_processes':{
             'section': 'general',
             'default': '1',
