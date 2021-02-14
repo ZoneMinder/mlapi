@@ -8,8 +8,43 @@ import cv2
 import re
 import ast
 import traceback
+import pyzm.helpers.utils as pyzmutils
 
 g.config = {}
+
+def str2tuple(str):
+    return [tuple(map(int, x.strip().split(','))) for x in str.split(' ')]
+
+
+# credit: https://stackoverflow.com/a/5320179
+def findWholeWord(w):
+    return re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search
+
+def check_and_import_zones(api):
+    for mid in g.monitor_polypatterns:
+        if g.monitor_config[mid].get('import_zm_zones') == 'no':
+            continue
+        elif g.config['import_zm_zones'] == 'no':
+            continue
+        url = '{}/api/zones/forMonitor/{}.json'.format(g.config.get('portal'),mid)        
+        print (url)
+        j = api._make_request(url=url, type='get')
+        for item in j.get('zones'):
+        #print ('********* ITEM TYPE {}'.format(item['Zone']['Type']))
+            if item['Zone']['Type'] == 'Inactive':
+                g.logger.Debug(2, 'Skipping {} as it is inactive'.format(item['Zone']['Name']))
+                continue
+         
+            item['Zone']['Name'] = item['Zone']['Name'].replace(' ','_').lower()
+            g.logger.Debug(2,'importing zoneminder polygon: {} [{}]'.format(item['Zone']['Name'], item['Zone']['Coords']))
+            g.monitor_polypatterns[mid].append({
+                'name': item['Zone']['Name'],
+                'value': str2tuple(item['Zone']['Coords']),
+                'pattern': None
+
+            })
+    #g.monitor_polypatterns[mid] = []
+    
 
 
 def convert_config_to_ml_sequence():
@@ -179,12 +214,15 @@ def process_config(args):
         if config_file.has_option('general', 'use_zm_logs'):
             use_zm_logs = config_file.get('general', 'use_zm_logs')
             if use_zm_logs == 'yes':
-                import pyzm.ZMLog as zmlog
-                g.logger.Info ('Switching to ZM logs from here on...')
-                zmlog.init(name='zm_mlapi',override=g.config['pyzm_overrides'])
-                g.log = zmlog
-                g.logger=g.log
-                g.logger.Info('Switched to ZM logs')
+                try:
+                    import pyzm.ZMLog as zmlog
+                    zmlog.init(name='zm_mlapi',override=g.config['pyzm_overrides'])
+                except Exception as e:
+                    g.logger.Error ('Not able to switch to ZM logs: {}'.format(e))
+                else:
+                    g.log = zmlog
+                    g.logger=g.log
+                    g.logger.Info('Switched to ZM logs')
         
 
         if config_file.has_option('general','secrets'):
@@ -202,28 +240,90 @@ def process_config(args):
             g.logger.Debug (1,'No secrets file configured')
         # now read config values
     
+        g.polygons = []
+        poly_patterns = []
         # first, fill in config with default values
         for k,v in g.config_vals.items():
             val = v.get('default', None)
             g.config[k] = _correct_type(val, v['type'])
             #print ('{}={}'.format(k,g.config[k]))
-            
+        
+       
         # now iterate the file
         for sec in config_file.sections():
             if sec == 'secrets':
                 continue
-            for (k, v) in config_file.items(sec):
-                if g.config_vals.get(k):
-                    _set_config_val(k,g.config_vals[k] )
-                else:
-                    #g.logger.Debug(4, 'storing unknown attribute {}={}'.format(k,v))
-                    g.config[k] = v 
-                    #_set_config_val(k,{'section': sec, 'default': None, 'type': 'string'} )
+            
+            # Move monitor specific stuff to a different structure
+            if sec.lower().startswith('monitor-'):
+                ts = sec.split('-')
+                if len(ts) != 2:
+                    g.logger.Error('Skipping section:{} - could not derive monitor name. Expecting monitor-NUM format')
+                    continue 
+
+                mid = int(ts[1])
+                g.logger.Debug (2,'Found monitor specific section for monitor: {}'.format(mid))
+
+                g.monitor_polypatterns[mid] = []
+                g.monitor_config[mid] = {}
+                # Copy the sequence into each monitor because when we do variable subs
+                # later, we will use this for monitor specific work
+                try:
+                    ml = config_file.get('ml', 'ml_sequence')
+                    g.monitor_config[mid]['ml_sequence']=ml
+                except:
+                    g.logger.Debug (4, 'ml sequence not found in globals')
+                     
+                try:
+                    ss = config_file.get('ml', 'stream_sequence')
+                    g.monitor_config[mid]['stream_sequence']=ss
+                except:
+                    g.logger.Debug (4, 'stream sequence not found in globals')
+                     
+                for item in config_file[sec].items():
+                    k = item[0]
+                    v = item[1]
+                    if k.endswith('_zone_detection_pattern'):
+                        zone_name = k.split('_zone_detection_pattern')[0]
+                        g.logger.Debug(2, 'found zone specific pattern:{} storing'.format(zone_name))
+                        g.monitor_polypatterns[mid].append({'name': zone_name, 'pattern':v})
+                        continue
+                    else:
+                        if k in g.config_vals:
+                        # This means its a legit config key that needs to be overriden
+                            g.logger.Debug(4,'[{}] overrides key:{} with value:{}'.format(sec, k, v))
+                            g.monitor_config[mid][k]=_correct_type(v,g.config_vals[k]['type'])
+                           # g.monitor_config[mid].append({ 'key':k, 'value':_correct_type(v,g.config_vals[k]['type'])})
+                        else:
+                            if k.startswith(('object_','face_', 'alpr_')):
+                                g.logger.Debug(2,'assuming {} is an ML sequence'.format(k))
+                                g.monitor_config[mid][k] = v
+                            else:
+                                try:
+                                    g.monitor_polypatterns[mid].append({'name': k, 'value': str2tuple(v),'pattern': None})
+                                    g.logger.Debug(2,'adding polygon: {} [{}]'.format(k, v ))
+                                except Exception as e:
+                                    g.monitor_config[mid][k]=v
+
+
+                            # TBD only_triggered_zones
+
+            # Not monitor specific stuff
+            else: 
+                for (k, v) in config_file.items(sec):
+                    if k in g.config_vals:
+                        _set_config_val(k,g.config_vals[k] )
+                    else:
+                        #g.logger.Debug(4, 'storing unknown attribute {}={}'.format(k,v))
+                        g.config[k] = v 
+                        #_set_config_val(k,{'section': sec, 'default': None, 'type': 'string'} )
+
         
-         # Now lets make sure we take care of parameter substitutions {{}}
-        g.logger.Debug (4,'Finally, doing parameter substitution')
 
 
+        # Parameter substitution
+
+        g.logger.Debug (4,'Doing parameter substitution for globals')
         p = r'{{(\w+?)}}'
         for gk, gv in g.config.items():
             #input ('Continue')
@@ -240,16 +340,58 @@ def process_config(args):
                         new_val = g.config[gk].replace('{{' + match_key + '}}',str(g.config[match_key]))
                         g.config[gk] = new_val
                         gv = new_val
+                    
                     else:
                         g.logger.Debug(4, 'substitution key: {} not found'.format(match_key))
                 if not replaced:
                     break
+
+        g.logger.Debug (4,'Doing parameter substitution for monitor specific entities')
+        p = r'{{(\w+?)}}'
+        for mid in g.monitor_config:
+            for key in g.monitor_config[mid]:
+                #input ('Continue')
+                #print(f"PROCESSING {gk} {gv}")
+                gk = key
+                gv = g.monitor_config[mid][key]
+                gv = '{}'.format(gv)
+                #if not isinstance(gv, str):
+                #    continue
+                while True:
+                    matches = re.findall(p,gv)
+                    replaced = False
+                    for match_key in matches:
+                        if match_key in g.monitor_config[mid]:
+                            replaced = True
+                            new_val =gv.replace('{{' + match_key + '}}',str(g.monitor_config[mid][match_key]))
+                            gv = new_val
+                            g.monitor_config[mid][key] = gv 
+                        elif match_key in g.config:
+                            replaced = True
+                            new_val =gv.replace('{{' + match_key + '}}',str(g.config[match_key]))
+                            gv = new_val
+                            g.monitor_config[mid][key] = gv
+                        else:
+                            g.logger.Debug(4, 'substitution key: {} not found'.format(match_key))
+                    if not replaced:
+                        break
+            
+            secrets = pyzmutils.read_config(g.config['secrets'])
+            #g.monitor_config[mid]['ml_sequence'] = pyzmutils.template_fill(input_str=g.monitor_config[mid]['ml_sequence'], config=None, secrets=secrets._sections.get('secrets'))
+            #g.monitor_config[mid]['ml_sequence'] = ast.literal_eval(g.monitor_config[mid]['ml_sequence'])
+
+            #g.monitor_config[mid]['stream_sequence'] = pyzmutils.template_fill(input_str=g.monitor_config[mid]['stream_sequence'], config=None, secrets=secrets._sections.get('secrets'))
+            #g.monitor_config[mid]['stream_sequence'] = ast.literal_eval(g.monitor_config[mid]['stream_sequence'])
+
+
+        #print ("GLOBALS={}".format(g.config))
+        #print ("\n\nMID_SPECIFIC={}".format(g.monitor_config))
+        #print ("\n\nMID POLYPATTERNS={}".format(g.monitor_polypatterns))
                     
     except Exception as e:
         g.logger.Error('Error parsing config:{}'.format(args['config']))
         g.logger.Error('Error was:{}'.format(e))
         g.logger.Fatal('error: Traceback:{}'.format(traceback.format_exc()))
-
         exit(0)
 
 

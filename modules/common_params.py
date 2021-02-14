@@ -10,10 +10,42 @@ log = g_log.ConsoleLog()
 logger = log
 
 config = {}
+monitor_config = {}
+monitor_polypatterns = {}
 config_vals = {
          'secrets':{
             'section': 'general',
             'default': None,
+            'type': 'string',
+        },
+         'portal':{
+            'section': 'general',
+            'default': '',
+            'type': 'string',
+        },
+        'api_portal':{
+            'section': 'general',
+            'default': '',
+            'type': 'string',
+        },
+        'user':{
+            'section': 'general',
+            'default': None,
+            'type': 'string'
+        },
+        'password':{
+            'section': 'general',
+            'default': None,
+            'type': 'string'
+        },
+        'import_zm_zones':{
+            'section': 'general',
+            'default': 'no',
+            'type': 'string',
+        },
+        'only_triggered_zm_zones':{
+            'section': 'general',
+            'default': 'no',
             'type': 'string',
         },
          'cpu_max_processes':{
