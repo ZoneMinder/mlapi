@@ -220,6 +220,7 @@ class Detect(Resource):
             fip,ext = get_file(args)
             fi = fip+ext
             stream = fi
+             
             #image = cv2.imread(fi)
         #bbox,label,conf = m.detect(image)
 
