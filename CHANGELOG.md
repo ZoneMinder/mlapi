@@ -1,5 +1,66 @@
 # Changelog
 
+## [v2.2.0](https://github.com/pliablepixels/mlapi/tree/v2.2.0) (2021-02-14)
+
+[Full Changelog](https://github.com/pliablepixels/mlapi/compare/v2.1.9...v2.2.0)
+
+**Implemented enhancements:**
+
+- Training known faces [\#13](https://github.com/pliablepixels/mlapi/issues/13)
+
+**Closed issues:**
+
+- fix crappy ml\_overrides approach from zm\_detect to mlapi [\#33](https://github.com/pliablepixels/mlapi/issues/33)
+
+**Merged pull requests:**
+
+- Monitor specific support [\#34](https://github.com/pliablepixels/mlapi/pull/34) ([pliablepixels](https://github.com/pliablepixels))
+
+## [v2.1.9](https://github.com/pliablepixels/mlapi/tree/v2.1.9) (2021-01-26)
+
+[Full Changelog](https://github.com/pliablepixels/mlapi/compare/v2.1.8...v2.1.9)
+
+**Fixed bugs:**
+
+- show\_percent=no not taken into account by mlapi [\#31](https://github.com/pliablepixels/mlapi/issues/31)
+
+**Closed issues:**
+
+- ValueError: malformed node or string: \<\_ast.Name object at 0x7f0e4cec2390\> [\#30](https://github.com/pliablepixels/mlapi/issues/30)
+- missing yolov3\_classes.txt [\#28](https://github.com/pliablepixels/mlapi/issues/28)
+
+## [v2.1.8](https://github.com/pliablepixels/mlapi/tree/v2.1.8) (2021-01-09)
+
+[Full Changelog](https://github.com/pliablepixels/mlapi/compare/v2.1.7...v2.1.8)
+
+**Closed issues:**
+
+- remote ML requirements question [\#29](https://github.com/pliablepixels/mlapi/issues/29)
+
+## [v2.1.7](https://github.com/pliablepixels/mlapi/tree/v2.1.7) (2021-01-07)
+
+[Full Changelog](https://github.com/pliablepixels/mlapi/compare/v2.1.6...v2.1.7)
+
+## [v2.1.6](https://github.com/pliablepixels/mlapi/tree/v2.1.6) (2021-01-03)
+
+[Full Changelog](https://github.com/pliablepixels/mlapi/compare/v2.1.5...v2.1.6)
+
+## [v2.1.5](https://github.com/pliablepixels/mlapi/tree/v2.1.5) (2021-01-03)
+
+[Full Changelog](https://github.com/pliablepixels/mlapi/compare/v2.1.4...v2.1.5)
+
+## [v2.1.4](https://github.com/pliablepixels/mlapi/tree/v2.1.4) (2021-01-03)
+
+[Full Changelog](https://github.com/pliablepixels/mlapi/compare/v2.1.3...v2.1.4)
+
+## [v2.1.3](https://github.com/pliablepixels/mlapi/tree/v2.1.3) (2021-01-03)
+
+[Full Changelog](https://github.com/pliablepixels/mlapi/compare/v2.1.2...v2.1.3)
+
+## [v2.1.2](https://github.com/pliablepixels/mlapi/tree/v2.1.2) (2021-01-02)
+
+[Full Changelog](https://github.com/pliablepixels/mlapi/compare/v2.1.1...v2.1.2)
+
 ## [v2.1.1](https://github.com/pliablepixels/mlapi/tree/v2.1.1) (2021-01-02)
 
 [Full Changelog](https://github.com/pliablepixels/mlapi/compare/v2.1.0...v2.1.1)
