@@ -5,7 +5,7 @@ Werkzeug
 tinydb
 imutils
 numpy
-flask_jwt_extended
+flask_jwt_extended ~= 3.25.0
 flask_restful
 flask
 progressbar33
