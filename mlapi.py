@@ -164,7 +164,7 @@ class Detect(Resource):
                 ml_options = utils.convert_config_to_ml_sequence()
 
             g.logger.Debug (4, 'Overwriting ml_sequence of pre loaded model')
-            g.logger.Debug (4, "REMOVE ME: NEW CONFIG: TYPE:{} ==> {}".format(type(ml_options), ml_options))
+            #g.logger.Debug (4, "REMOVE ME: NEW CONFIG: TYPE:{} ==> {}".format(type(ml_options), ml_options))
             m.set_ml_options(ml_options)  
         else:
             g.logger.Debug(1,f'Monitor ID not specified, or not found in mlapi config, using zm_detect overrides')
