@@ -45,7 +45,6 @@ def allowed_ext(ext):
 # Assigns a unique name to the image and saves it locally for analysis
 
 def parse_args():
-
     parser = reqparse.RequestParser()
     parser.add_argument('type', location='args',  default=None)
     parser.add_argument('response_format', location='args',  default='legacy')
@@ -111,7 +110,7 @@ class Detect(Resource):
     def post(self):
         args = parse_args()
         req = request.get_json()
-        #print (req)
+
         fi = None
         stream_options={}
         stream = None 
@@ -122,7 +121,8 @@ class Detect(Resource):
         
 
         if not req:
-            abort(400, msg='Empty request')
+            req = {}
+        #    abort(400, msg='Empty request')
 
         if req.get('mid') and g.monitor_config.get(int(req.get('mid'))):
             mid = int(req.get('mid'))
@@ -343,7 +343,7 @@ app.config['MAX_CONTENT_LENGTH'] = g.MAX_FILE_SIZE_MB * 1024 * 1024
 app.config['JWT_SECRET_KEY'] = g.config['mlapi_secret_key']
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = g.ACCESS_TOKEN_EXPIRES
 app.config['PROPAGATE_EXCEPTIONS'] = True
-app.debug = False
+app.debug = True
 jwt = JWTManager(app)
 
 db = Database.Database()
