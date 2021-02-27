@@ -21,7 +21,7 @@ def findWholeWord(w):
     return re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search
 
 def check_and_import_zones(api):
-    for mid in g.monitor_polypatterns:
+    for mid in g.monitor_polygons:
         if g.monitor_config[mid].get('import_zm_zones') == 'no':
             continue
         elif g.config['import_zm_zones'] == 'no':
@@ -37,13 +37,12 @@ def check_and_import_zones(api):
          
             item['Zone']['Name'] = item['Zone']['Name'].replace(' ','_').lower()
             g.logger.Debug(2,'importing zoneminder polygon: {} [{}]'.format(item['Zone']['Name'], item['Zone']['Coords']))
-            g.monitor_polypatterns[mid].append({
+            g.monitor_polygons[mid].append({
                 'name': item['Zone']['Name'],
                 'value': str2tuple(item['Zone']['Coords']),
                 'pattern': None
 
             })
-    #g.monitor_polypatterns[mid] = []
     
 
 
@@ -155,6 +154,7 @@ def process_config(args):
 # parse config file into a dictionary with defaults
 
     g.config = {}
+
     has_secrets = False
     secrets_file = None
 
@@ -241,7 +241,6 @@ def process_config(args):
         # now read config values
     
         g.polygons = []
-        poly_patterns = []
         # first, fill in config with default values
         for k,v in g.config_vals.items():
             val = v.get('default', None)
@@ -264,8 +263,9 @@ def process_config(args):
                 mid = int(ts[1])
                 g.logger.Debug (2,'Found monitor specific section for monitor: {}'.format(mid))
 
-                g.monitor_polypatterns[mid] = []
+                g.monitor_polygons[mid] = []
                 g.monitor_config[mid] = {}
+                poly_patterns = []
                 # Copy the sequence into each monitor because when we do variable subs
                 # later, we will use this for monitor specific work
                 try:
@@ -286,7 +286,7 @@ def process_config(args):
                     if k.endswith('_zone_detection_pattern'):
                         zone_name = k.split('_zone_detection_pattern')[0]
                         g.logger.Debug(2, 'found zone specific pattern:{} storing'.format(zone_name))
-                        g.monitor_polypatterns[mid].append({'name': zone_name, 'pattern':v})
+                        poly_patterns.append({'name': zone_name, 'pattern':v})
                         continue
                     else:
                         if k in g.config_vals:
@@ -300,10 +300,19 @@ def process_config(args):
                                 g.monitor_config[mid][k] = v
                             else:
                                 try:
-                                    g.monitor_polypatterns[mid].append({'name': k, 'value': str2tuple(v),'pattern': None})
+                                    g.monitor_polygons[mid].append({'name': k, 'value': str2tuple(v),'pattern': None})
                                     g.logger.Debug(2,'adding polygon: {} [{}]'.format(k, v ))
                                 except Exception as e:
                                     g.monitor_config[mid][k]=v
+
+                # Now copy over poly patterns to polygons
+                for poly in g.monitor_polygons[mid]:
+                    for poly_pat in poly_patterns:
+                        if poly['name'] == poly_pat['name']:
+                            poly['pattern'] = poly_pat['pattern']
+                            g.logger.Debug(2, 'replacing match pattern for polygon:{} with: {}'.format( poly['name'],poly_pat['pattern'] ))
+
+    
 
 
                             # TBD only_triggered_zones
@@ -387,7 +396,8 @@ def process_config(args):
         #print ("GLOBALS={}".format(g.config))
         #print ("\n\nMID_SPECIFIC={}".format(g.monitor_config))
         #print ("\n\nMID POLYPATTERNS={}".format(g.monitor_polypatterns))
-                    
+        #print ('FINAL POLYS={}'.format(g.monitor_polygons))         
+        #exit(0) 
     except Exception as e:
         g.logger.Error('Error parsing config:{}'.format(args['config']))
         g.logger.Error('Error was:{}'.format(e))

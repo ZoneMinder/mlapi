@@ -11,7 +11,7 @@ logger = log
 
 config = {}
 monitor_config = {}
-monitor_polypatterns = {}
+monitor_polygons = {}
 config_vals = {
          'secrets':{
             'section': 'general',
@@ -145,6 +145,12 @@ config_vals = {
         'allow_self_signed':{
             'section': 'general',
             'default': 'yes',
+            'type': 'string'
+        },
+
+        'resize':{
+            'section': 'general',
+            'default': 'no',
             'type': 'string'
         },
        

@@ -129,8 +129,7 @@ class Detect(Resource):
             g.logger.Debug (1, f'Monitor ID {mid} provided & matching config found in mlapi, ignoring objectconfig.ini')
             config_copy = copy.copy(g.config)
             poly_copy = copy.copy(g.polygons)
-
-            g.polygons = g.monitor_polypatterns[mid]
+            g.polygons = g.monitor_polygons[mid]
 
 
             for key in g.monitor_config[mid]:
