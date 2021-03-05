@@ -13,8 +13,11 @@ import pyzm.helpers.utils as pyzmutils
 g.config = {}
 
 def str2tuple(str):
-    return [tuple(map(int, x.strip().split(','))) for x in str.split(' ')]
-
+    m =  [tuple(map(int, x.strip().split(','))) for x in str.split(' ')]
+    if len(m) < 3:
+        raise ValueError ('{} formed an invalid polygon. Needs to have at least 3 points'.format(m))
+    else:
+        return m
 
 # credit: https://stackoverflow.com/a/5320179
 def findWholeWord(w):
@@ -303,6 +306,7 @@ def process_config(args):
                                     g.monitor_polygons[mid].append({'name': k, 'value': str2tuple(v),'pattern': None})
                                     g.logger.Debug(2,'adding polygon: {} [{}]'.format(k, v ))
                                 except Exception as e:
+                                    g.logger.Debug(2,'{} is not a polygon, adding it as unknown string key'.format(k))
                                     g.monitor_config[mid][k]=v
 
                 # Now copy over poly patterns to polygons
