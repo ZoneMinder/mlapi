@@ -38,11 +38,6 @@ config_vals = {
             'default': None,
             'type': 'string'
         },
-        'wait': {
-            'section': 'general',
-            'default':'0',
-            'type': 'int'
-        },
         'import_zm_zones':{
             'section': 'general',
             'default': 'no',
