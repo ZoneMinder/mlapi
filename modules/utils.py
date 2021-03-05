@@ -24,13 +24,15 @@ def findWholeWord(w):
     return re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search
 
 def check_and_import_zones(api):
-    for mid in g.monitor_polygons:
+    for mid in g.monitor_config:
         if g.monitor_config[mid].get('import_zm_zones') == 'no':
+            g.logger.Debug(4,'Not importing zones for monitor:{} as the monitor specific section says no'.format(mid))
             continue
         elif g.config['import_zm_zones'] == 'no':
+            g.logger.Debug(4,'Not importing zones for monitor:{} as the global setting says no and there is no local override'.format(mid))
             continue
         url = '{}/api/zones/forMonitor/{}.json'.format(g.config.get('portal'),mid)        
-        print (url)
+        g.logger.Debug(2,'Importing Zones for Monitor:{}'.format(mid))
         j = api._make_request(url=url, type='get')
         for item in j.get('zones'):
         #print ('********* ITEM TYPE {}'.format(item['Zone']['Type']))
