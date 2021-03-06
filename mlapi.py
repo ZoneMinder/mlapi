@@ -313,7 +313,6 @@ ap = argparse.ArgumentParser()
 ap.add_argument('-c', '--config',  help='config file with path')
 ap.add_argument('-vv', '--verboseversion', action='store_true', help='print version and exit')
 ap.add_argument('-v', '--version', action='store_true', help='print mlapi version and exit')
-
 ap.add_argument('-d', '--debug', help='enables debug on console', action='store_true')
 
 args, u = ap.parse_known_args()
@@ -327,17 +326,11 @@ if not args.get('config'):
     print ('--config required')
     exit(1)
 
-
-
 utils.process_config(args)
 
 app = Flask(__name__)
-
-
-
 # Override the HTTP exception handler.
 app.handle_http_exception = get_http_exception_handler(app)
-
 api = Api(app, prefix='/api/v1')
 app.config['UPLOAD_FOLDER'] = g.config['images_path']
 app.config['MAX_CONTENT_LENGTH'] = g.MAX_FILE_SIZE_MB * 1024 * 1024
@@ -346,9 +339,7 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = g.ACCESS_TOKEN_EXPIRES
 app.config['PROPAGATE_EXCEPTIONS'] = True
 app.debug = False
 jwt = JWTManager(app)
-
 db = Database.Database()
-
 api.add_resource(Login, '/login')
 api.add_resource(Detect, '/detect/object')
 api.add_resource(Health, '/health')
@@ -374,7 +365,7 @@ if not api_options.get('apiurl') or not api_options.get('portalurl'):
 else:
     zmapi = zmapi.ZMApi(options=api_options, logger=g.log)
     utils.check_and_import_zones(zmapi)
-    g.logger.Debug (4, 'REMOVEME: FULL LIST OF ZONES IMPORTED: {}'.format (g.monitor_polygons))
+    #g.logger.Debug (4, 'REMOVEME: FULL LIST OF ZONES IMPORTED: {}'.format (g.monitor_polygons))
 
     
 
