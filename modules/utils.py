@@ -33,7 +33,12 @@ def check_and_import_zones(api):
             continue
         url = '{}/api/zones/forMonitor/{}.json'.format(g.config.get('portal'),mid)        
         g.logger.Debug(2,'Importing Zones for Monitor:{}'.format(mid))
-        j = api._make_request(url=url, type='get')
+        try:
+            j = api._make_request(url=url, type='get')
+        except Exception as e:
+            g.logger.Error ('Could not retrieve Zone for MID:{} continuing to next'.format(mid))
+            continue 
+        
         for item in j.get('zones'):
         #print ('********* ITEM TYPE {}'.format(item['Zone']['Type']))
             if item['Zone']['Type'] == 'Inactive':
