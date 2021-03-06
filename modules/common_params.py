@@ -12,6 +12,7 @@ logger = log
 config = {}
 monitor_config = {}
 monitor_polygons = {}
+monitor_zone_patterns={}
 config_vals = {
          'secrets':{
             'section': 'general',

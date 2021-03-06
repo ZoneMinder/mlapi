@@ -48,8 +48,12 @@ def check_and_import_zones(api):
                 'pattern': None
 
             })
-    
-
+        # Now copy over pending zone patterns from process_config
+        for poly in g.monitor_polygons[mid]:
+            for zone_name in g.monitor_zone_patterns[mid]:
+                if poly['name'] == zone_name:
+                    poly['pattern'] = g.monitor_zone_patterns[mid][zone_name]
+                    g.logger.Debug(2, 'replacing match pattern for polygon:{} with: {}'.format( poly['name'],poly['pattern'] ))
 
 def convert_config_to_ml_sequence():
     ml_options={}
@@ -270,7 +274,7 @@ def process_config(args):
 
                 g.monitor_polygons[mid] = []
                 g.monitor_config[mid] = {}
-                poly_patterns = []
+                g.monitor_zone_patterns[mid] = {}
                 # Copy the sequence into each monitor because when we do variable subs
                 # later, we will use this for monitor specific work
                 try:
@@ -284,14 +288,14 @@ def process_config(args):
                     g.monitor_config[mid]['stream_sequence']=ss
                 except:
                     g.logger.Debug (4, 'stream sequence not found in globals')
-                     
+
                 for item in config_file[sec].items():
                     k = item[0]
                     v = item[1]
                     if k.endswith('_zone_detection_pattern'):
                         zone_name = k.split('_zone_detection_pattern')[0]
                         g.logger.Debug(2, 'found zone specific pattern:{} storing'.format(zone_name))
-                        poly_patterns.append({'name': zone_name, 'pattern':v})
+                        g.monitor_zone_patterns[mid][zone_name] = v
                         continue
                     else:
                         if k in g.config_vals:
@@ -311,16 +315,7 @@ def process_config(args):
                                     g.logger.Debug(2,'{} is not a polygon, adding it as unknown string key'.format(k))
                                     g.monitor_config[mid][k]=v
 
-                # Now copy over poly patterns to polygons
-                for poly in g.monitor_polygons[mid]:
-                    for poly_pat in poly_patterns:
-                        if poly['name'] == poly_pat['name']:
-                            poly['pattern'] = poly_pat['pattern']
-                            g.logger.Debug(2, 'replacing match pattern for polygon:{} with: {}'.format( poly['name'],poly_pat['pattern'] ))
-
-    
-
-
+            
                             # TBD only_triggered_zones
 
             # Not monitor specific stuff

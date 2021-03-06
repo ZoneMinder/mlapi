@@ -295,6 +295,16 @@ class Health(Resource):
         response.status_code = 200
         return response
 
+def get_http_exception_handler(app):
+    """Overrides the default http exception handler to return JSON."""
+    handle_http_exception = app.handle_http_exception
+    @wraps(handle_http_exception)
+    def ret_val(exception):
+        exc = handle_http_exception(exception)
+        return jsonify({'code': exc.code, 'msg': exc.description}), exc.code
+    return ret_val
+
+
 #-----------------------------------------------
 # main init
 #-----------------------------------------------
@@ -323,14 +333,6 @@ utils.process_config(args)
 
 app = Flask(__name__)
 
-def get_http_exception_handler(app):
-    """Overrides the default http exception handler to return JSON."""
-    handle_http_exception = app.handle_http_exception
-    @wraps(handle_http_exception)
-    def ret_val(exception):
-        exc = handle_http_exception(exception)
-        return jsonify({'code': exc.code, 'msg': exc.description}), exc.code
-    return ret_val
 
 
 # Override the HTTP exception handler.
@@ -372,9 +374,9 @@ if not api_options.get('apiurl') or not api_options.get('portalurl'):
 else:
     zmapi = zmapi.ZMApi(options=api_options, logger=g.log)
     utils.check_and_import_zones(zmapi)
+    g.logger.Debug (4, 'REMOVEME: FULL LIST OF ZONES IMPORTED: {}'.format (g.monitor_polygons))
 
-
-     
+    
 
 ml_options = {}
 stream_options = {}
