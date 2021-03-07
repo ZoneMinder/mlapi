@@ -124,8 +124,8 @@ class Detect(Resource):
             req = {}
         #    abort(400, msg='Empty request')
 
-        if req.get('mid') and g.monitor_config.get(int(req.get('mid'))):
-            mid = int(req.get('mid'))
+        if req.get('mid') and g.monitor_config.get(req.get('mid')):
+            mid = req.get('mid')
             g.logger.Debug (1, f'Monitor ID {mid} provided & matching config found in mlapi, ignoring objectconfig.ini')
             config_copy = copy.copy(g.config)
             poly_copy = copy.copy(g.polygons)
