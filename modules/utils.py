@@ -24,41 +24,47 @@ def findWholeWord(w):
     return re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search
 
 def check_and_import_zones(api):
-    for mid in g.monitor_config:
-        if g.monitor_config[mid].get('import_zm_zones') == 'no':
+
+    url = '{}/api/zones.json'.format(g.config.get('portal'))       
+    try:
+        j = api._make_request(url=url, type='get')
+    except Exception as e:
+        g.logger.Error ('Zone API error: {}'.format(e))
+        return 
+
+    for item in j.get('zones'):
+        mid = item['Zone']['MonitorId']
+        if mid in g.monitor_config and g.monitor_config[mid].get('import_zm_zones') == 'no':
             g.logger.Debug(4,'Not importing zones for monitor:{} as the monitor specific section says no'.format(mid))
-            continue
+            continue 
         elif g.config['import_zm_zones'] == 'no':
             g.logger.Debug(4,'Not importing zones for monitor:{} as the global setting says no and there is no local override'.format(mid))
             continue
-        url = '{}/api/zones/forMonitor/{}.json'.format(g.config.get('portal'),mid)        
-        g.logger.Debug(2,'Importing Zones for Monitor:{}'.format(mid))
-        try:
-            j = api._make_request(url=url, type='get')
-        except Exception as e:
-            g.logger.Error ('Could not retrieve Zone for MID:{} continuing to next'.format(mid))
-            continue 
-        
-        for item in j.get('zones'):
-        #print ('********* ITEM TYPE {}'.format(item['Zone']['Type']))
-            if item['Zone']['Type'] == 'Inactive':
-                g.logger.Debug(2, 'Skipping {} as it is inactive'.format(item['Zone']['Name']))
-                continue
-         
-            item['Zone']['Name'] = item['Zone']['Name'].replace(' ','_').lower()
-            g.logger.Debug(2,'importing zoneminder polygon: {} [{}]'.format(item['Zone']['Name'], item['Zone']['Coords']))
-            g.monitor_polygons[mid].append({
-                'name': item['Zone']['Name'],
-                'value': str2tuple(item['Zone']['Coords']),
-                'pattern': None
+        # At this stage, there is no global zone=no, and if g.monitor_config[mid] exists, there is no local zone=no either 
+        if not mid in g.monitor_config:
+            g.monitor_config[mid]={}
+            g.monitor_zone_patterns[mid] = {}
+            g.monitor_polygons[mid] = []
 
-            })
-        # Now copy over pending zone patterns from process_config
+        if item['Zone']['Type'] == 'Inactive':
+            g.logger.Debug(2, 'Skipping {} as it is inactive'.format(item['Zone']['Name']))
+            continue
+    
+        item['Zone']['Name'] = item['Zone']['Name'].replace(' ','_').lower()
+        g.logger.Debug(2,'For monitor:{} importing zoneminder polygon: {} [{}]'.format(mid,item['Zone']['Name'], item['Zone']['Coords']))
+        g.monitor_polygons[mid].append({
+            'name': item['Zone']['Name'],
+            'value': str2tuple(item['Zone']['Coords']),
+            'pattern': None
+        })
+        
+    # Now copy over pending zone patterns from process_config
+    for mid in g.monitor_polygons:
         for poly in g.monitor_polygons[mid]:
             for zone_name in g.monitor_zone_patterns[mid]:
                 if poly['name'] == zone_name:
                     poly['pattern'] = g.monitor_zone_patterns[mid][zone_name]
-                    g.logger.Debug(2, 'replacing match pattern for polygon:{} with: {}'.format( poly['name'],poly['pattern'] ))
+                    g.logger.Debug(2, 'For monitor:{} replacing match pattern for polygon:{} with: {}'.format( mid,poly['name'],poly['pattern'] ))
 
 def convert_config_to_ml_sequence():
     ml_options={}
@@ -274,7 +280,7 @@ def process_config(args):
                     g.logger.Error('Skipping section:{} - could not derive monitor name. Expecting monitor-NUM format')
                     continue 
 
-                mid = int(ts[1])
+                mid=ts[1]
                 g.logger.Debug (2,'Found monitor specific section for monitor: {}'.format(mid))
 
                 g.monitor_polygons[mid] = []
