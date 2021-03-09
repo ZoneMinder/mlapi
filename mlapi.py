@@ -123,7 +123,7 @@ class Detect(Resource):
         if not req:
             req = {}
         #    abort(400, msg='Empty request')
-    
+        g.logger.Debug (4,'***** REMOVE ME: Got req: {}'.forma(req))
         if req.get('mid') and g.monitor_config.get(str(req.get('mid'))):
             mid = str(req.get('mid'))
             g.logger.Debug (1, f'Monitor ID {mid} provided & matching config found in mlapi, ignoring objectconfig.ini')
