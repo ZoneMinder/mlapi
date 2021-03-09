@@ -123,8 +123,12 @@ class Detect(Resource):
         if not req:
             req = {}
         #    abort(400, msg='Empty request')
-        g.logger.Debug (4,'***** REMOVE ME: Got req: {}'.format(req))
-        if req.get('mid') and g.monitor_config.get(str(req.get('mid'))):
+        #g.logger.Debug (4,'***** REMOVE ME: g.monitor_config: {}'.format(g.monitor_config))
+        #g.logger.Debug (4,'***** REMOVE ME: g.monitor_polygons: {}'.format(g.monitor_polygons))
+        #g.logger.Debug (4,'***** REMOVE ME: g.monitor_zone_patterns: {}'.format(g.monitor_zone_patterns))
+
+        #g.logger.Debug (4,'***** REMOVE ME: Got req: {}'.format(req))
+        if req.get('mid') and str(req.get('mid')) in g.monitor_config:
             mid = str(req.get('mid'))
             g.logger.Debug (1, f'Monitor ID {mid} provided & matching config found in mlapi, ignoring objectconfig.ini')
             config_copy = copy.copy(g.config)
