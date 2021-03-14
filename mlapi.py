@@ -230,7 +230,17 @@ class Detect(Resource):
         g.log.Debug (1, f'Calling detect streams with {stream} and {stream_options} and ml_overrides={ml_overrides} ml_options={ml_options}')
         #print (f'************************ {args}')
         matched_data,all_matches = m.detect_stream(stream=stream, options=stream_options, ml_overrides=ml_overrides)
-        local_polygons = g.polygons
+    
+        if matched_data['polygons']:
+            local_polygons = matched_data['polygons']
+            g.logger.Debug(4,'Using returned polygons from detectSequence as it may have been rescaled')
+        else:
+            local_polygons=g.polygons
+
+
+        if matched_data['image_dimensions']:
+            oldh =matched_data['image_dimensions']['original'][0]
+            oldw = matched_data['image_dimensions']['original'][1]
 
         if config_copy:
             g.log.Debug(4, 'Restoring global config & ml_options')
