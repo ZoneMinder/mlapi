@@ -34,13 +34,16 @@ def check_and_import_zones(api):
 
     for item in j.get('zones'):
         mid = item['Zone']['MonitorId']
+
+        # if we have a 'no' inside local monitor section, don't import 
         if mid in g.monitor_config and g.monitor_config[mid].get('import_zm_zones') == 'no':
             g.logger.Debug(4,'Not importing zones for monitor:{} as the monitor specific section says no'.format(mid))
             continue 
-        elif g.config['import_zm_zones'] == 'no':
+        # else if global is no, and there is no local, don't import
+        elif g.config['import_zm_zones'] == 'no' and mid not in g.monitor_config:
             g.logger.Debug(4,'Not importing zones for monitor:{} as the global setting says no and there is no local override'.format(mid))
             continue
-        # At this stage, there is no global zone=no, and if g.monitor_config[mid] exists, there is no local zone=no either 
+        # At this stage, global is 'yes' and local is either unspecified or has 'yes'
         if not mid in g.monitor_config:
             g.monitor_config[mid]={}
             g.monitor_zone_patterns[mid] = {}
