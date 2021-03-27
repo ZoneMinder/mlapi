@@ -118,16 +118,11 @@ class Detect(Resource):
         config_copy = None 
         poly_copy = None 
         ml_options = None
-        
+        mid = None 
+
 
         if not req:
             req = {}
-        #    abort(400, msg='Empty request')
-        #g.logger.Debug (4,'***** REMOVE ME: g.monitor_config: {}'.format(g.monitor_config))
-        #g.logger.Debug (4,'***** REMOVE ME: g.monitor_polygons: {}'.format(g.monitor_polygons))
-        #g.logger.Debug (4,'***** REMOVE ME: g.monitor_zone_patterns: {}'.format(g.monitor_zone_patterns))
-
-        #g.logger.Debug (4,'***** REMOVE ME: Got req: {}'.format(req))
         if req.get('mid') and str(req.get('mid')) in g.monitor_config:
             mid = str(req.get('mid'))
             g.logger.Debug (1, f'Monitor ID {mid} provided & matching config found in mlapi, ignoring objectconfig.ini')
@@ -227,6 +222,7 @@ class Detect(Resource):
             #image = cv2.imread(fi)
         #bbox,label,conf = m.detect(image)
 
+        stream_options['mid'] = mid
         g.log.Debug (1, f'Calling detect streams with {stream} and {stream_options} and ml_overrides={ml_overrides} ml_options={ml_options}')
         #print (f'************************ {args}')
         matched_data,all_matches = m.detect_stream(stream=stream, options=stream_options, ml_overrides=ml_overrides)
