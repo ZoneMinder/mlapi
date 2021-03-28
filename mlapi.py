@@ -102,9 +102,6 @@ def get_file(args):
 # general argument processing
 
 
-
-
-
 class Detect(Resource):
     @jwt_required
     def post(self):
@@ -119,7 +116,6 @@ class Detect(Resource):
         poly_copy = None 
         ml_options = None
         mid = None 
-
 
         if not req:
             req = {}
