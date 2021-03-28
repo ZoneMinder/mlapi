@@ -223,7 +223,7 @@ class Detect(Resource):
         #bbox,label,conf = m.detect(image)
 
         stream_options['mid'] = mid
-        g.log.Debug (1, f'Calling detect streams with {stream} and {stream_options} and ml_overrides={ml_overrides} ml_options={ml_options}')
+        g.log.Debug (1, f'Calling detect streams')
         #print (f'************************ {args}')
         matched_data,all_matches = m.detect_stream(stream=stream, options=stream_options, ml_overrides=ml_overrides)
 
@@ -365,7 +365,7 @@ g.log.set_level(5)
 if not api_options.get('apiurl') or not api_options.get('portalurl'):
     g.log.Info('Missing API and/or Portal URLs. Your secrets file probably doesn\'t have these values')
 else:
-    zmapi = zmapi.ZMApi(options=api_options, logger=g.log)
+    zmapi = zmapi.ZMApi(options=api_options)
     utils.check_and_import_zones(zmapi)
     #g.logger.Debug (4, 'REMOVEME: FULL LIST OF ZONES IMPORTED: {}'.format (g.monitor_polygons))
 
@@ -392,7 +392,7 @@ else:
 
 #print(ml_options)
 
-m = DetectSequence(options=ml_options, logger=g.log)
+m = DetectSequence(options=ml_options, global_config=g.config)
 
 
 if __name__ == '__main__':
