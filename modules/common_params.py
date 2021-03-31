@@ -109,6 +109,11 @@ config_vals = {
             'default': './db',
             'type': 'string',
         },
+        'wait': {
+            'section': 'general',
+            'default':'0',
+            'type': 'int'
+        },
         'mlapi_secret_key':{
             'section': 'general',
             'default': None,

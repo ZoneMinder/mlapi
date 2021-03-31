@@ -219,6 +219,8 @@ class Detect(Resource):
         #bbox,label,conf = m.detect(image)
 
         stream_options['mid'] = mid
+        if not stream_options.get('delay') and g.config.get('wait'):
+            stream_options['delay'] = g.config.get('wait')
         g.log.Debug (1, f'Calling detect streams')
         #print (f'************************ {args}')
         matched_data,all_matches = m.detect_stream(stream=stream, options=stream_options, ml_overrides=ml_overrides)
