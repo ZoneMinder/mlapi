@@ -132,6 +132,9 @@ class Detect(Resource):
                 g.logger.Debug(4, 'Overriding global {} with {}'.format(key, g.monitor_config[mid][key]))
                 g.config[key] = g.monitor_config[mid][key]
             
+            # stupid mlapi and zm_detect config incompatibility
+            if not g.config.get('image_path') and g.config.get('images_path'):
+                g.config['image_path'] = g.config['images_path']
 
             # At this stage, polygons has a copy of that monitor polygon set
             # g.config has overriden values of config from the mid 
