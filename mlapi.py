@@ -129,7 +129,7 @@ class Detect(Resource):
 
             for key in g.monitor_config[mid]:
                 # This will also take care of copying over mid specific stream_options
-                g.logger.Debug(4, 'Overriding global {} with {}...'.format(key, g.monitor_config[mid][key][:10]))
+                g.logger.Debug(4, 'Overriding global {} with {}...'.format(key, g.monitor_config[mid][key][:30]))
                 g.config[key] = g.monitor_config[mid][key]
             
             # stupid mlapi and zm_detect config incompatibility
