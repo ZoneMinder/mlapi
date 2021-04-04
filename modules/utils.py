@@ -323,7 +323,8 @@ def process_config(args):
                                 g.monitor_config[mid][k] = v
                             else:
                                 try:
-                                    g.monitor_polygons[mid].append({'name': k, 'value': str2tuple(v),'pattern': None})
+                                    p = str2tuple(v) # if not poly, exception will be thrown
+                                    g.monitor_polygons[mid].append({'name': k, 'value': p,'pattern': None})
                                     g.logger.Debug(2,'adding polygon: {} [{}]'.format(k, v ))
                                 except Exception as e:
                                     g.logger.Debug(2,'{} is not a polygon, adding it as unknown string key'.format(k))
