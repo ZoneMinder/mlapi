@@ -365,7 +365,6 @@ def process_config(args):
                         new_val = g.config[gk].replace('{{' + match_key + '}}',str(g.config[match_key]))
                         g.config[gk] = new_val
                         gv = new_val
-                    
                     else:
                         g.logger.Debug(4, 'substitution key: {} not found'.format(match_key))
                 if not replaced:
