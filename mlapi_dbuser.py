@@ -53,6 +53,7 @@ if not args.get('user') or not args.get('password'):
         if  p1 != p2:
             print ('Passwords do not match, please re-try')
             continue
+        break
 else:
     name = args.get('user')
     p1 = args.get('password')
