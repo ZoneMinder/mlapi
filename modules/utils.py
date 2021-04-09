@@ -40,9 +40,10 @@ def check_and_import_zones(api):
             g.logger.Debug(4,'Not importing zones for monitor:{} as the monitor specific section says no'.format(mid))
             continue 
         # else if global is no, and there is no local, don't import
-        elif g.config['import_zm_zones'] == 'no' and mid not in g.monitor_config:
+        elif g.config['import_zm_zones'] == 'no' and (mid not in g.monitor_config or not g.monitor_config[mid].get('import_zm_zones')):
             g.logger.Debug(4,'Not importing zone:{} for monitor:{} as the global setting says no and there is no local override'.format(item['Zone']['Name'], mid))
             continue
+      
         # At this stage, global is 'yes' and local is either unspecified or has 'yes'
         if not mid in g.monitor_config:
             g.monitor_config[mid]={}
