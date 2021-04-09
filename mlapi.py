@@ -348,10 +348,16 @@ api.add_resource(Detect, '/detect/object')
 api.add_resource(Health, '/health')
 
 secrets_conf = pyzmutils.read_config(g.config['secrets'])
+
 g.config['api_portal'] = g.config['api_portal'] or pyzmutils.get(key='ZM_API_PORTAL', section='secrets', conf=secrets_conf)
 g.config['portal'] = g.config['portal'] or pyzmutils.get(key='ZM_PORTAL', section='secrets', conf=secrets_conf)
 g.config['user'] = g.config['user'] or pyzmutils.get(key='ZM_USER', section='secrets', conf=secrets_conf)
 g.config['password'] = g.config['password'] or pyzmutils.get(key='ZM_PASSWORD', section='secrets', conf=secrets_conf)
+
+if g.config['auth_enabled'] == 'no':
+    g.config['user'] = None 
+    g.config['password'] = None 
+    g.logger.Info('Turning off auth for mlapi')
 
 api_options  = {
     'apiurl': g.config['api_portal'],

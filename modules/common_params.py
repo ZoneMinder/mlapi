@@ -19,6 +19,11 @@ config_vals = {
             'default': None,
             'type': 'string',
         },
+        'auth_enabled':{
+            'section': 'general',
+            'default': 'yes',
+            'type': 'string',
+        },
          'portal':{
             'section': 'general',
             'default': '',
