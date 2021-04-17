@@ -364,6 +364,8 @@ api_options  = {
     'portalurl':g.config['portal'],
     'user':g.config['user'] ,
     'password': g.config['password'],
+    'basic_auth_user': g.config['basic_auth_user'],
+    'basic_auth_password': g.config['basic_auth_password'],
     'disable_ssl_cert_check':False if g.config['allow_self_signed']=='no' else True
 }
 

@@ -44,6 +44,16 @@ config_vals = {
             'default': None,
             'type': 'string'
         },
+        'basic_auth_user':{
+            'section': 'general',
+            'default': None,
+            'type': 'string'
+        },
+        'basic_auth_password':{
+            'section': 'general',
+            'default': None,
+            'type': 'string'
+        },
         'import_zm_zones':{
             'section': 'general',
             'default': 'no',
