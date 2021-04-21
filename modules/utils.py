@@ -247,12 +247,15 @@ def process_config(args):
                     g.log = zmlog
                     g.logger=g.log
                     g.logger.Info('Switched to ZM logs')
-        
+                    g.logger.Info('Reading config from: {}'.format(args.get('config')))
+
+        g.logger.Info('Reading config from: {}'.format(args.get('config')))
+
 
         if config_file.has_option('general','secrets'):
             secrets_filename = config_file.get('general', 'secrets')
             g.config['secrets'] = secrets_filename
-            g.logger.Debug (1,'secret filename: {}'.format(secrets_filename))
+            g.logger.Info('Reading secrets from: {}'.format(secrets_filename))
             has_secrets = True
             secrets_file = ConfigParser(interpolation = None, inline_comment_prefixes='#')
             try:
