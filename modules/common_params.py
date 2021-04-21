@@ -356,6 +356,16 @@ config_vals = {
             'default': None,
             'type': 'eval'
         },
+        'platerec_payload':{
+            'section': 'alpr',
+            'default': None,
+            'type': 'eval'
+        },
+        'platerec_config':{
+            'section': 'alpr',
+            'default': None,
+            'type': 'eval'
+        },
         'platerec_min_dscore':{
             'section': 'alpr',
             'default': '0.3',
