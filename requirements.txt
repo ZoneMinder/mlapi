@@ -12,5 +12,4 @@ progressbar33
 scikit_learn
 face_recognition
 pyzm>=0.3.48
-portalocker
 bjoern
