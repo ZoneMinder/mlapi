@@ -356,7 +356,6 @@ def process_config(args):
         p = r'{{(\w+?)}}'
         for gk, gv in g.config.items():
             #input ('Continue')
-            #print(f"PROCESSING {gk} {gv}")
             gv = '{}'.format(gv)
             #if not isinstance(gv, str):
             #    continue
@@ -379,7 +378,6 @@ def process_config(args):
         for mid in g.monitor_config:
             for key in g.monitor_config[mid]:
                 #input ('Continue')
-                #print(f"PROCESSING {gk} {gv}")
                 gk = key
                 gv = g.monitor_config[mid][key]
                 gv = '{}'.format(gv)

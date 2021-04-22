@@ -121,7 +121,7 @@ class Detect(Resource):
             req = {}
         if req.get('mid') and str(req.get('mid')) in g.monitor_config:
             mid = str(req.get('mid'))
-            g.logger.Debug (1, f'Monitor ID {mid} provided & matching config found in mlapi, ignoring objectconfig.ini')
+            g.logger.Debug (1, 'Monitor ID {} provided & matching config found in mlapi, ignoring objectconfig.ini'.format(mid))
             config_copy = copy.copy(g.config)
             poly_copy = copy.copy(g.polygons)
             g.polygons = g.monitor_polygons[mid]
@@ -164,7 +164,7 @@ class Detect(Resource):
             #g.logger.Debug (4, "REMOVE ME: NEW CONFIG: TYPE:{} ==> {}".format(type(ml_options), ml_options))
             m.set_ml_options(ml_options)  
         else:
-            g.logger.Debug(1,f'Monitor ID not specified, or not found in mlapi config, using zm_detect overrides')
+            g.logger.Debug(1,'Monitor ID not specified, or not found in mlapi config, using zm_detect overrides')
             ml_overrides = req.get('ml_overrides',{})
             if g.config['ml_sequence'] and g.config['use_sequence'] == 'yes':
                 g.log.Debug(2,'using ml_sequence')
@@ -224,8 +224,7 @@ class Detect(Resource):
         stream_options['mid'] = mid
         if not stream_options.get('delay') and g.config.get('wait'):
             stream_options['delay'] = g.config.get('wait')
-        g.log.Debug (1, f'Calling detect streams')
-        #print (f'************************ {args}')
+        g.log.Debug (1, 'Calling detect streams')
         matched_data,all_matches = m.detect_stream(stream=stream, options=stream_options, ml_overrides=ml_overrides)
 
         if matched_data['image_dimensions']:
