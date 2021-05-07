@@ -37,11 +37,11 @@ def check_and_import_zones(api):
 
         # if we have a 'no' inside local monitor section, don't import 
         if mid in g.monitor_config and g.monitor_config[mid].get('import_zm_zones') == 'no':
-            g.logger.Debug(4,'Not importing zones for monitor:{} as the monitor specific section says no'.format(mid))
+            g.logger.Debug(1,'Not importing zones for monitor:{} as the monitor specific section says no'.format(mid))
             continue 
         # else if global is no, and there is no local, don't import
         elif g.config['import_zm_zones'] == 'no' and (mid not in g.monitor_config or not g.monitor_config[mid].get('import_zm_zones')):
-            g.logger.Debug(4,'Not importing zone:{} for monitor:{} as the global setting says no and there is no local override'.format(item['Zone']['Name'], mid))
+            g.logger.Debug(1,'Not importing zone:{} for monitor:{} as the global setting says no and there is no local override'.format(item['Zone']['Name'], mid))
             continue
       
         # At this stage, global is 'yes' and local is either unspecified or has 'yes'
@@ -51,7 +51,7 @@ def check_and_import_zones(api):
             g.monitor_polygons[mid] = []
 
         if item['Zone']['Type'] == 'Inactive':
-            g.logger.Debug(2, 'Skipping {} as it is inactive'.format(item['Zone']['Name']))
+            g.logger.Debug(1, 'Skipping {} as it is inactive'.format(item['Zone']['Name']))
             continue
     
         item['Zone']['Name'] = item['Zone']['Name'].replace(' ','_').lower()
@@ -299,13 +299,13 @@ def process_config(args):
                     ml = config_file.get('ml', 'ml_sequence')
                     g.monitor_config[mid]['ml_sequence']=ml
                 except:
-                    g.logger.Debug (4, 'ml sequence not found in globals')
+                    g.logger.Debug (2, 'ml sequence not found in globals')
                      
                 try:
                     ss = config_file.get('ml', 'stream_sequence')
                     g.monitor_config[mid]['stream_sequence']=ss
                 except:
-                    g.logger.Debug (4, 'stream sequence not found in globals')
+                    g.logger.Debug (2, 'stream sequence not found in globals')
 
                 for item in config_file[sec].items():
                     k = item[0]
@@ -318,7 +318,7 @@ def process_config(args):
                     else:
                         if k in g.config_vals:
                         # This means its a legit config key that needs to be overriden
-                            g.logger.Debug(4,'[{}] overrides key:{} with value:{}'.format(sec, k, v))
+                            g.logger.Debug(2,'[{}] overrides key:{} with value:{}'.format(sec, k, v))
                             g.monitor_config[mid][k]=_correct_type(v,g.config_vals[k]['type'])
                            # g.monitor_config[mid].append({ 'key':k, 'value':_correct_type(v,g.config_vals[k]['type'])})
                         else:
@@ -343,16 +343,14 @@ def process_config(args):
                     if k in g.config_vals:
                         _set_config_val(k,g.config_vals[k] )
                     else:
-                        #g.logger.Debug(4, 'storing unknown attribute {}={}'.format(k,v))
                         g.config[k] = v 
-                        #_set_config_val(k,{'section': sec, 'default': None, 'type': 'string'} )
 
         
 
 
         # Parameter substitution
 
-        g.logger.Debug (4,'Doing parameter substitution for globals')
+        g.logger.Debug (2,'Doing parameter substitution for globals')
         p = r'{{(\w+?)}}'
         for gk, gv in g.config.items():
             #input ('Continue')
@@ -369,11 +367,11 @@ def process_config(args):
                         g.config[gk] = new_val
                         gv = new_val
                     else:
-                        g.logger.Debug(4, 'substitution key: {} not found'.format(match_key))
+                        g.logger.Debug(2, 'substitution key: {} not found'.format(match_key))
                 if not replaced:
                     break
 
-        g.logger.Debug (4,'Doing parameter substitution for monitor specific entities')
+        g.logger.Debug (2,'Doing parameter substitution for monitor specific entities')
         p = r'{{(\w+?)}}'
         for mid in g.monitor_config:
             for key in g.monitor_config[mid]:
@@ -398,7 +396,7 @@ def process_config(args):
                             gv = new_val
                             g.monitor_config[mid][key] = gv
                         else:
-                            g.logger.Debug(4, 'substitution key: {} not found'.format(match_key))
+                            g.logger.Debug(2, 'substitution key: {} not found'.format(match_key))
                     if not replaced:
                         break
             

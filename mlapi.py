@@ -129,7 +129,7 @@ class Detect(Resource):
 
             for key in g.monitor_config[mid]:
                 # This will also take care of copying over mid specific stream_options
-                g.logger.Debug(4, 'Overriding global {} with {}...'.format(key, g.monitor_config[mid][key][:30]))
+                g.logger.Debug(2, 'Overriding global {} with {}...'.format(key, g.monitor_config[mid][key][:30]))
                 g.config[key] = g.monitor_config[mid][key]
             
             # stupid mlapi and zm_detect config incompatibility
@@ -141,12 +141,12 @@ class Detect(Resource):
 
             r = req.get('reason')
             if r and g.config['only_triggered_zm_zones'] == 'yes' and g.config['import_zm_zones'] == 'yes':
-                g.logger.Debug(4, 'Only filtering polygon names that have {}'.format(r))
+                g.logger.Debug(2, 'Only filtering polygon names that have {}'.format(r))
                 r =r.replace(' ','_').lower()
-                g.logger.Debug(4, 'Original polygons being used: {}'.format(g.polygons))
+                g.logger.Debug(2, 'Original polygons being used: {}'.format(g.polygons))
 
                 g.polygons[:] = [item for item in g.polygons if utils.findWholeWord(item['name'])(r)]
-                g.logger.Debug(4, 'Final polygons being used: {}'.format(g.polygons))
+                g.logger.Debug(2, 'Final polygons being used: {}'.format(g.polygons))
                 
             
             if g.config['ml_sequence'] and g.config['use_sequence'] == 'yes':
@@ -160,8 +160,7 @@ class Detect(Resource):
                 g.logger.Debug(2,'mapping legacy ml data from config')
                 ml_options = utils.convert_config_to_ml_sequence()
 
-            g.logger.Debug (4, 'Overwriting ml_sequence of pre loaded model')
-            #g.logger.Debug (4, "REMOVE ME: NEW CONFIG: TYPE:{} ==> {}".format(type(ml_options), ml_options))
+            g.logger.Debug (2, 'Overwriting ml_sequence of pre loaded model')
             m.set_ml_options(ml_options)  
         else:
             g.logger.Debug(1,'Monitor ID not specified, or not found in mlapi config, using zm_detect overrides')
@@ -180,7 +179,7 @@ class Detect(Resource):
             #print (ml_options)
      
         if g.config.get('stream_sequence'):
-            g.logger.Debug(4, 'Found stream_sequence in mlapi config, ignoring objectconfig.ini')
+            g.logger.Debug(2, 'Found stream_sequence in mlapi config, ignoring objectconfig.ini')
             stream_options = ast.literal_eval(g.config.get('stream_sequence'))
         else:
             stream_options = req.get('stream_options')
@@ -232,7 +231,7 @@ class Detect(Resource):
             oldw = matched_data['image_dimensions']['original'][1]
 
         if config_copy:
-            g.log.Debug(4, 'Restoring global config & ml_options')
+            g.log.Debug(2, 'Restoring global config & ml_options')
             g.config = config_copy
             g.polygons = poly_copy
 
@@ -375,8 +374,6 @@ if not api_options.get('apiurl') or not api_options.get('portalurl'):
 else:
     zmapi = zmapi.ZMApi(options=api_options)
     utils.check_and_import_zones(zmapi)
-    #g.logger.Debug (4, 'REMOVEME: FULL LIST OF ZONES IMPORTED: {}'.format (g.monitor_polygons))
-
     
 
 ml_options = {}
