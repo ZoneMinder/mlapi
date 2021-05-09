@@ -190,15 +190,6 @@ class Detect(Resource):
 
         stream = req.get('stream')
            
-        #g.log.Info ('I GOT: {} and {}'.format(stream, stream_options))        
-        if args['type'] == 'face_names':
-            g.log.Debug (1,'List of face names requested')
-            print (face_obj.get_classes())
-            face_list = {
-                'names': face_obj.get_classes().tolist()
-            }
-            return face_list
-
         if args['type'] == 'face':
             g.log.Debug (1,'Face Recognition requested')
         
