@@ -142,7 +142,6 @@ class Detect(Resource):
             r = req.get('reason')
             if r and g.config['only_triggered_zm_zones'] == 'yes' and g.config['import_zm_zones'] == 'yes':
                 g.logger.Debug(2, 'Only filtering polygon names that have {}'.format(r))
-                r =r.replace(' ','_').lower()
                 g.logger.Debug(2, 'Original polygons being used: {}'.format(g.polygons))
 
                 g.polygons[:] = [item for item in g.polygons if utils.findWholeWord(item['name'])(r)]
