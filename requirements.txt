@@ -1,6 +1,8 @@
 requests
+requests-toolbelt
 passlib
 bcrypt
+cryptography
 Werkzeug
 tinydb
 imutils
@@ -8,9 +10,9 @@ numpy
 flask_jwt_extended ~= 3.25.0
 flask_restful ~= 0.3.8
 flask ~= 1.1.2
-progressbar33
 scikit_learn
-face_recognition
-pyzm>=0.3.56
+progressbar33
 bjoern
 configupdater
+pydantic
+pyyaml

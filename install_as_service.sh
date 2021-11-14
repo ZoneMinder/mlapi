@@ -12,6 +12,7 @@ RSYNC="rsync -av --progress"
 echo "This is really just my internal script to run mlapi as a service"
 echo "You probably need to modify mlapi.service and this script"
 echo "Which means, you likely don't want to run this..."
+echo "*** IF YOU INSTALL MLAPI ON DIFF HOST THAN ZMES, make sure to change the user in these scripts!"
 echo
 read -p "Meh. I know what I'm doing. INSTALL! (Press some key...)"
 

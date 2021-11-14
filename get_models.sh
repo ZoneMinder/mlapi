@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #-----------------------------------------------------
 # Download required ML models
@@ -59,12 +59,24 @@ then
     echo
    
   echo 'Checking for Google Coral Edge TPU data files...'
-            targets=( 'coco_indexed.names' 'ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite' 'ssdlite_mobiledet_coco_qat_postprocess_edgetpu.tflite' 'ssd_mobilenet_v2_face_quant_postprocess_edgetpu.tflite')
-            sources=('https://dl.google.com/coral/canned_models/coco_labels.txt'
-                     'https://github.com/google-coral/edgetpu/raw/master/test_data/ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite'
-                     'https://github.com/google-coral/test_data/raw/master/ssdlite_mobiledet_coco_qat_postprocess_edgetpu.tflite'
-                     'https://github.com/google-coral/test_data/raw/master/ssd_mobilenet_v2_face_quant_postprocess_edgetpu.tflite'
-                    )
+                 targets=(
+              'coco_indexed.names'
+              'ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite'
+              'ssdlite_mobiledet_coco_qat_postprocess_edgetpu.tflite'
+              'ssd_mobilenet_v2_face_quant_postprocess_edgetpu.tflite'
+              # EfficeintDet lite 3
+              'efficientdet_lite3_512_ptq_edgetpu.tflite'
+              # MobileNetv2 but TF2 trained
+              'tf2_ssd_mobilenet_v2_coco17_ptq_edgetpu.tflite'
+             )
+            sources=(
+               'https://dl.google.com/coral/canned_models/coco_labels.txt'
+               'https://github.com/google-coral/edgetpu/raw/master/test_data/ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite'
+               'https://github.com/google-coral/test_data/raw/master/ssdlite_mobiledet_coco_qat_postprocess_edgetpu.tflite'
+               'https://github.com/google-coral/test_data/raw/master/ssd_mobilenet_v2_face_quant_postprocess_edgetpu.tflite'
+               'https://github.com/google-coral/test_data/raw/master/tf2_ssd_mobilenet_v2_coco17_ptq_edgetpu.tflite'
+               'https://github.com/google-coral/test_data/raw/master/efficientdet_lite3_512_ptq_edgetpu.tflite'
+            )
 
 
     for ((i=0;i<${#targets[@]};++i))

@@ -1,0 +1,17 @@
+# Change <USER> and <GROUP> to the user and group that runs neo-mlapi (if on same host as zmes it will be the web user)
+# If installed on a host without neo-ZMES make sure it's the user who you have running mlapi
+# Create a file for logrotate (Install logrotate if you do not have it): /etc/logrotate.d/mlapi -->
+/path/to/mlapi/logs/zm_mlapi*.log {
+    missingok
+    su <USER> <GROUP>
+## create only applicable when not using copytruncate
+##    create <USER> <GROUP>
+    copytruncate
+    notifempty
+    sharedscripts
+    delaycompress
+    compress
+    daily
+    rotate 7
+    maxage 7
+}

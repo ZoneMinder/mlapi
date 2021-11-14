@@ -32,7 +32,6 @@ WorkingDirectory=/var/lib/zmeventnotification/mlapi
 User=www-data
 #Change paths if needed
 ExecStart=/var/lib/zmeventnotification/mlapi/mlapi.py -c ./mlapiconfig.ini
-ExecStartPost=+/bin/sh -c 'umask 022; pgrep mlapi.py > /var/run/mlapi.pid'
 
 
 # Note that if you enable use_zm_logs=yes in mlapiconfig.ini
