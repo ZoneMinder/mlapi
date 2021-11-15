@@ -4,7 +4,7 @@
 # REMEMBER to always quote any option containing a {[secret]} or {{variable}} ->
 #my_custom_variable: {{s_path}}/to_a_file.txt   <---- INCORRECT
 #some_thing: {[secrets]} are cool   <---- INCORRECT
-#some_thing: '{[secrets]}' are cool   <---- CORRECT
+#some_thing: '{[secrets]} are cool'   <---- CORRECT
 
 #my_custom_variable: '{{s_path}}/to_a_file.txt'  <--- CORRECT
 #some_thing: '{[secrets]} are cool'   <---- CORRECT
@@ -14,13 +14,16 @@
 #######################################
 #    ------  [ GENERAL SECTION ] ------
 #######################################
-# LEAVE base_data_path AS THE FIRST KEY!
-# base data path for various files the ES+OD needs.
+# LEAVE base_data_path AS THE FIRST KEY! or as high up as possible. Then it can be used to build all the other paths.
+# ***** PLEASE MAKE THIS AN ABSOLUTE PATH  *****
 # ***** PLEASE MAKE THIS AN ABSOLUTE PATH  *****
 # Example if on a host without neo-ZMES: /home/me/.opt/mlapi
 # Example: if on the same host as neo-ZMES: /var/lib/zmeventnotification/mlapi
 # It seems important to keep this key as the first one (or as high up) in the YAML file, this enables the use of
 # {{base_data_path}} in the base keys.
+# This is where mlapi is installed. (Default: .)
+
+# ***** PLEASE MAKE THIS AN ABSOLUTE PATH  *****
 base_data_path: .
 
 # the secret key that will be used to sign

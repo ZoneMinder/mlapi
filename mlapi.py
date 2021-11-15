@@ -354,6 +354,7 @@ class Detect(Resource):
         req = None
         ip_addr = request.remote_addr or "N/A"
         if request.headers.get("X-Forwarded-For"):
+            g.logger.debug(f"{lp} X-Forwarded-For header found - {request.headers.get('X-Forwarded-For')}")
             ip_addr = request.headers.get("X-Forwarded-For", 'N/A')
         req_args = parse_args()
 
@@ -376,7 +377,7 @@ class Detect(Resource):
         encrypted_data = req.get("encrypted data")
         ml_overrides = req.get("ml_overrides", {})
         g.eid = stream = req.get("stream")
-        sub_options = req.get("sub_options")
+        sub_options = None
 
         g.mid = mid = int(req.get("mid", 0))
         zm_keys = g.config.get('zmes_keys')
@@ -587,7 +588,7 @@ class Detect(Resource):
                 stream=stream,
                 options=stream_options,
                 ml_overrides=ml_overrides,
-                sub_options=sub_options,
+                sub_options=None,
                 in_file=file_uploaded,
             )
         # Merge stream-<model sequences> and regular detections logic for constructing reply
