@@ -3,10 +3,10 @@ import argparse
 
 from pyzm.helpers.new_yaml import process_config as proc_conf
 from pyzm.helpers.pyzm_utils import LogBuffer
-import pyzm.helpers.globals as g
+from pyzm.helpers.new_yaml import GlobalConfig
 import pyzm.ml.face_train_dlib as train
 
-
+g = GlobalConfig()
 ap = argparse.ArgumentParser()
 ap.add_argument('-c',
                 '--config',

@@ -1,4 +1,24 @@
-Note
+
+# *** This is the 'neo-ZMES' forked version! ***
+
+# Note
+All credit goes to the original author @pliablepixels. Please see https://github.com/pliablepixels
+I taught myself python to work on this project, I am learning git, etc. Please forgive the terrible commits.
+
+Please be aware that the 'neo' versions are NOT compatible with the source repos. The module structure is different, functions and args are different and processing the configs are a completely different syntax and structure. My goal is to add some more options for power users and speed things up. In my personal testing I can say that I have blazing fast detections compared to the source repos. Gotify is basically instant as long as the app is not battery optimized (I am unaware of if gotify has an iOS app).
+
+I am actively taking enhancement requests for new features and improvements.
+
+MAJOR CHANGES
+---
+- Configuration files have been changed to YAML syntax (secrets as well).
+- !SECRETS are now {[SECRETS]}, this allows for embedding in nested data structures and sub-strings.
+- PERFORMANCE - I made many, many changes based on becoming more performant. There is logic for live and past events, the frame buffer is smarter and tries to handle out of bound frame calls or errors gracefully to recover instead of erring. Many tasks are now Threaded.
+- MLAPI no longer needs API credentials for a ZM API user, the ZMES instance requesting the detection will send encrypted credentials.
+- Uses cryptography.Fernet symmetrical key encryption for credential transport.
+- MLAPI is dynamic, it can now take requests from more than 1 ZMES instance.
+
+Old Note
 =====
 Release 2.1.1 onwards of mlapi requires ES 6.1.0 
 Starting 2.1.1, the mlapiconfig.ini file has changed to support sequence structures. Please read 
@@ -6,6 +26,8 @@ Starting 2.1.1, the mlapiconfig.ini file has changed to support sequence structu
 
 What
 =====
+This project is currently heavily linked to ZoneMinder. You can still use it for other things, see stream.py for an example.
+
 An API gateway that you can install in your own server to do object and face recognition.
 Easy to extend to many/any other model. You can pass images as:
 - a local file
