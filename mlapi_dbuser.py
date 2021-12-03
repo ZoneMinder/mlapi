@@ -37,3 +37,8 @@ if args.get('remove'):
 
 if not args.get('user') or not args.get('password'):
     create_success = db.create_prompt()
+else:
+    if db.get_user(args.get('user')) and not args.get('force'):
+        print(f"User: user '{args.get('user')}' already exists! you must --force or remove the user and re create\n")
+        exit(1)
+    db.add_user(args.get('user'), args.get('password'))
