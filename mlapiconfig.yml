@@ -105,15 +105,15 @@ processes: 1
 # and using the aliases that are piped out to bat to view the logs in color coded and themed output.
 pyzm_overrides:
   # levels
-  log_level_syslog: 5
-  log_level_file: 5
-  log_level_debug: 5
-  # dont log to the DB (-5)
-  log_level_db: -5
+#  log_level_syslog: 5
+#  log_level_file: 5
+#  log_level_debug: 5
+  # don't log to the DB (-5)
+#  log_level_db: -5
   # log levels -> 1 dbg/print/blank 0 info, -1 warn, -2 err, -3 fatal, -4 panic, -5 off (only for log_debug_file)
-  log_debug_file: 1
-  log_debug: True
-  log_debug_target: _zm_mlapi|_zmes
+#  log_debug_file: 1
+#  log_debug: True
+#  log_debug_target: _zm_mlapi|_zmes|current
 
 
 # Name of the user/group running mlapi (same as user for service file). Default: www-data or apache depending on system
@@ -124,11 +124,15 @@ pyzm_overrides:
 #log_user: MyOwnUserName
 #log_group: MyOwnGroupName
 
-# Path to where you want the log file stored, not the name of the file, the directory (Default: {{base_data_path}}/logs)
+# Path to where you want the log file stored, not the name of the file, the directory
+# [Default: {{base_data_path}}/logs]
 #log_path: /my/custom/log/path
+# Force creation of the log_path if it does not exist (may fail if insufficient privileges)
+#[Default: no]
+#log_path_force: yes
 
-# Name of the logfile DO NOT add trailing '.log' Default: zm_mlapi
-#log_name: mlapi-host1
+# Name of the logfile [Default: zm_mlapi.log]
+#log_name: mlapi-host1.log
 
 
 
@@ -228,9 +232,11 @@ yolo4_object_processor: gpu
 #fp16_target: no
 
 # Yolo v3 on GPU (falls back to CPU if no GPU)
-yolo3_object_weights: '{{base_data_path}}/models/yolov3/yolov3.weights'
-yolo3_object_labels: '{{base_data_path}}/models/yolov3/coco.names'
-yolo3_object_config: '{{base_data_path}}/models/yolov3/yolov3.cfg'
+yolo3_models: '{{base_data_path}}/models/yolov3'
+# Yolo v4 on GPU (falls back to CPU if no GPU)
+yolo3_object_weights: '{{yolo4_models}}/yolov3.weights'
+yolo3_object_labels: '{{yolo4_models}}/coco.names'
+yolo3_object_config: '{{yolo4_models}}/yolov3.cfg'
 yolo3_object_framework: opencv
 yolo3_object_processor: gpu
 
@@ -240,12 +246,19 @@ tinyyolo_object_weights: '{{base_data_path}}/models/tinyyolov4/yolov4-tiny.weigh
 tinyyolo_object_labels: '{{base_data_path}}/models/tinyyolov4/coco.names'
 tinyyolo_object_framework: opencv
 tinyyolo_object_processor: gpu
+
+# Tiny Yolo V3 on GPU (falls back to CPU if no GPU)
+#tinyyolo_object_config: '{{base_data_path}}/models/tinyyolov3/yolov3-tiny.cfg'
+#tinyyolo_object_weights: '{{base_data_path}}/models/tinyyolov3/yolov3-tiny.weights'
+#tinyyolo_object_labels: '{{base_data_path}}/models/tinyyolov3/coco.names'
+#tinyyolo_object_framework: opencv
+#tinyyolo_object_processor: gpu
 ###########################################
 #    ------ [ FACE MODEL SECTION ] ------
 ###########################################
 tpu_face_weights_mobilenetv2: '{{coral_models}}/ssd_mobilenet_v2_face_quant_postprocess_edgetpu.tflite'
 face_detection_pattern: .*
-# cpu or gpu, if gpu isnt available it will default to cpu. You can force CPU usage if you want (?)
+# cpu or gpu, if gpu isn't available it will default to cpu. You can force CPU usage if you want (?)
 face_dlib_processor: gpu
 
 face_detection_framework: dlib
@@ -267,7 +280,7 @@ save_unknown_faces_leeway_pixels: 100
 ###########################################
 #    ------ [ ALPR MODEL SECTION ] ------
 ###########################################
-  # regex pattern, specify plate numbers!
+# regex pattern, specify plate numbers!
 alpr_detection_pattern: .*
 
 #-- Many of the ALPR providers offer both a cloud version
@@ -426,27 +439,28 @@ ml_sequence:
     disable_locks: '{{disable_locks}}'
     match_past_detections: '{{match_past_detections}}'
     past_det_max_diff_area: '{{past_det_max_diff_area}}'
-#     ignore_past_detection_labels: ['dog', 'cat']
-#     when matching past detections, names in a group are treated the same
-#     also adding <alias>_min_confidence <alias>_past_det_max_diff_size
-#     example -> vehicles_min_confidence :  0.66
+#    ignore_past_detection_labels: ['dog', 'cat']
+  #     when matching past detections, names in a group are treated the same
+  #     also adding <alias>_min_confidence <alias>_past_det_max_diff_size
+  #     example -> vehicles_min_confidence :  0.66
     aliases:
       vehicles: [ 'car', 'bus', 'truck', 'boat', 'motorcycle' ]
       plants: [ 'broccoli', 'pottedplant', 'potted_plant' ]
       animals: [ 'dog','cat','mouse','horse' ]
-  #          NOTE! per label overrides go here in 'general'
-#      person_min_confidence: '{{person_min_confidence}}'
-#      car_min_confidence: '{{car_min_confidence}}'
-#      dog_min_confidence: '{{dog_min_confidence}}'
-#      person_contained_area: '{{person_contained_area}}'
-#      car_contained_area: '{{car_contained_area}}'
-#      dog_contained_area: '{{dog_contained_area}}'
-#      person_past_det_max_diff_area: '{{person_past_det_max_diff_area}}'
-#      car_past_det_max_diff_area: '{{car_past_det_max_diff_area}}'
-#      dog_past_det_max_diff_area: '{{dog_past_det_max_diff_area}}'
-#      car_max_detection_size: '{{car_max_detection_size}}'
-#      dog_max_detection_size: '{{dog_max_detection_size}}'
-#      person_max_detection_size: '{{person_max_detection_size}}'
+  #    NOTE! per label overrides go here in 'general'
+#    person_min_confidence: '{{person_min_confidence}}'
+#    car_min_confidence: '{{car_min_confidence}}'
+#    dog_min_confidence: '{{dog_min_confidence}}'
+#    person_contained_area: '{{person_contained_area}}'
+#    car_contained_area: '{{car_contained_area}}'
+#    dog_contained_area: '{{dog_contained_area}}'
+#    person_past_det_max_diff_area: '{{person_past_det_max_diff_area}}'
+#    car_past_det_max_diff_area: '{{car_past_det_max_diff_area}}'
+#    dog_past_det_max_diff_area: '{{dog_past_det_max_diff_area}}'
+#    car_max_detection_size: '{{car_max_detection_size}}'
+#    dog_max_detection_size: '{{dog_max_detection_size}}'
+#    person_max_detection_size: '{{person_max_detection_size}}'
+
   object:
     general:
       object_detection_pattern: '{{object_detection_pattern}}'

@@ -76,6 +76,11 @@ def main():
     # -----------------------------------------------
     ap = ArgumentParser()
     ap.add_argument(
+        "--from-docker",
+        action="store_true",
+        default=False
+    )
+    ap.add_argument(
         "-c",
         "--config",
         help="config file with path"

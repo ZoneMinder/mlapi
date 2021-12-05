@@ -7,10 +7,6 @@
 #-----------------------------------------------------
 
 # --- Change these if you want --
-
-PYTHON=python3
-PIP=pip3
-
 INSTALL_YOLOV3=${INSTALL_YOLOV3:-yes}
 INSTALL_TINYYOLOV3=${INSTALL_TINYYOLOV3:-yes}
 INSTALL_YOLOV4=${INSTALL_YOLOV4:-yes}
@@ -18,8 +14,8 @@ INSTALL_TINYYOLOV4=${INSTALL_TINYYOLOV4:-yes}
 INSTALL_CORAL_EDGETPU=${INSTALL_CORAL_EDGETPU:-no}
 
 TARGET_DIR=${TARGET_DIR:-./models}
-
-WGET=$(which wget)
+WGET_=$(which wget)
+WGET=${WGET:-$WGET_}
 
 # utility functions for color coded pretty printing
 print_error() {
