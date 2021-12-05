@@ -167,6 +167,8 @@ def main():
     g.logger.debug(
         f"perf:{lp}init: total time to build initial config -> {(datetime.datetime.now() - start).total_seconds()}"
     )
+    if args.get('from_docker'):
+        g.logger.info(f"{lp} --from-docker was passed, MLAPI is running inside of a docker environment")
     app = Flask(__name__)
     # Override the HTTP exception handler.
     app.handle_http_exception = get_http_exception_handler(app)
