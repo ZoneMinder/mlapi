@@ -5,6 +5,7 @@ import json
 import signal
 import sys
 from argparse import ArgumentParser
+from collections import deque
 from functools import wraps
 from json import loads
 from mimetypes import guess_extension
@@ -37,7 +38,7 @@ from pyzm.helpers.new_yaml import ConfigParse, process_config as proc_conf
 from pyzm.helpers.pyzm_utils import str2bool, import_zm_zones
 from pyzm.ml.detect_sequence import DetectSequence
 
-__version__ = "3.0.3"
+__version__ = "0.0.1"
 m: DetectSequence
 app: Flask
 db: mlapi_user_db
@@ -376,12 +377,17 @@ class Detect(Resource):
         if request.files.get('image'):
             req_args['file'] = request.files.get('image')
             file_uploaded = True
+        encrypted_data: dict = req.get("encrypted data")
+        route_name: str = ''
+        route_data_str: str = ""
+        if encrypted_data:
+            route_name = encrypted_data.pop('name')
+            route_data_str = f" coming in on route '{route_name}'"
 
         g.logger.debug(f"{lp} The detection request is for MLAPI DB user '{get_jwt_identity()}'"
-                       f" using IP address -> {ip_addr}")
+                       f" using IP address -> {ip_addr}{route_data_str}")
         zmes_stream_options = req.get("stream_options")
         reason = req.get("reason")
-        encrypted_data = req.get("encrypted data")
         ml_overrides = req.get("ml_overrides", {})
         g.eid = stream = req.get("stream")
         sub_options = None
@@ -441,10 +447,12 @@ class Detect(Resource):
                     g.logger.debug(f"{lp} the secrets file has changed since it was last read, rebuilding config!")
                     mlc = None
                     mlc, g = proc_conf(args, conf_globals=g, type_='mlapi')
+                    m.set_ml_options(force_reload=True)
             else:
                 g.logger.debug(f"{lp} the config file has changed since it was last read, rebuilding config!")
                 mlc = None
                 mlc, g = proc_conf(args, conf_globals=g, type_='mlapi')
+                m.set_ml_options(force_reload=True)
             if perf_config_hash:
                 g.logger.debug(
                     f"perf:{lp} total time to hash config/secrets -> "
@@ -459,12 +467,10 @@ class Detect(Resource):
 
             # End of hash and reconfigure
             # Cache the credentials?
-            route_name = ''
             decrypted_data = {}
             if encrypted_data:
                 # zm_keys is from the config file
                 if zm_keys:
-                    route_name = encrypted_data.pop('name')
                     g.logger.debug(2, f"{lp} encrypted credentials received, checking keystore "
                                       f"for '{route_name}'"
                                    )
