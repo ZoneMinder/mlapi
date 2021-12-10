@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-from pyzm.helpers.new_yaml import GlobalConfig
 from pyzm.helpers.mlapi_db import Database
 from argparse import ArgumentParser
 from pyzm.helpers.new_yaml import process_config as proc_conf
 from pyzm.helpers.pyzm_utils import LogBuffer
+from pyzm.interface import GlobalConfig
 
 g = GlobalConfig()
 ap = ArgumentParser()
@@ -38,3 +38,8 @@ if args.get('remove'):
 
 if not args.get('user') or not args.get('password'):
     create_success = db.create_prompt()
+else:
+    if db.get_user(args.get('user')) and not args.get('force'):
+        print(f"User: user '{args.get('user')}' already exists! you must --force or remove the user and re create\n")
+        exit(1)
+    db.add_user(args.get('user'), args.get('password'))

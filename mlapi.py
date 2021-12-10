@@ -7,6 +7,7 @@ from argparse import ArgumentParser
 from functools import wraps
 from json import loads
 from mimetypes import guess_extension
+from collections import deque
 from pathlib import Path
 from threading import Thread
 from traceback import format_exc
@@ -14,6 +15,8 @@ from typing import Optional, Union
 
 import cryptography.exceptions
 import cv2
+# Pycharm hack for intellisense
+# from cv2 import cv2
 import numpy as np
 from cryptography.fernet import Fernet
 from flask import Flask, request, jsonify, Response
@@ -35,9 +38,8 @@ from pyzm import __version__ as pyzm_version
 from pyzm.api import ZMApi
 from pyzm.helpers.new_yaml import ConfigParse, process_config as proc_conf
 from pyzm.helpers.pyzm_utils import str2bool, import_zm_zones
+from pyzm.interface import GlobalConfig
 from pyzm.ml.detect_sequence import DetectSequence
-from pyzm.helpers.new_yaml import GlobalConfig
-
 
 JWT: JWTManager
 MAX_FILE_SIZE_MB: int = 5
@@ -182,7 +184,7 @@ ml_sequence:
       sequence: []
 """)
 
-__version__ = "3.0.3"
+__version__ = "0.0.1"
 lp: str = 'mlapi:'
 
 
@@ -211,6 +213,16 @@ def _parse_args() -> dict:
         "-c",
         "--config",
         help="config file with path"
+    )
+    ap.add_argument(
+        "--from-docker",
+        action="store_true",
+        default=False
+    )
+    ap.add_argument(
+        "--docker",
+        action="store_true",
+        default=False
     )
     ap.add_argument(
         "-vv",
@@ -293,7 +305,7 @@ def main(globs):
         kwargs={
             'config': g.config,
             'args': args,
-            '_type': 'mlapi',
+            'type_': 'mlapi',
             'no_signal': True
         }
     )
@@ -312,6 +324,8 @@ def main(globs):
     g.logger.debug(
         f"perf:{lp}init: total time to build initial config -> {time.perf_counter() - start}"
     )
+    if args.get('from_docker') or args.get('docker'):
+        g.logger.info(f"{lp} {'--from-docker' if args.get('from_docker') else '--docker'} was passed, MLAPI is running inside of a docker environment")
     app = Flask(__name__)
     # Override the HTTP exception handler.
     app.handle_http_exception = get_http_exception_handler(app)
@@ -550,11 +564,16 @@ class Detect(Resource):
             req_args['file'] = request.files.get('image')
             file_uploaded = True
         # todo: access.log
+        encrypted_data: dict = req.get("encrypted data")
+        route_name: str = ''
+        route_data_str: str = ""
+        if encrypted_data:
+            route_name = encrypted_data.pop('name')
+            route_data_str = f" coming in on route '{route_name}'"
         g.logger.debug(f"{lp} The detection request is for MLAPI DB user '{get_jwt_identity()}'"
-                       f" using IP address -> {remote_ip_address}")
+                       f" using IP address -> {remote_ip_address}{route_data_str}")
         zmes_stream_options: Optional[dict] = req.get("stream_options")
         reason: Optional[str] = req.get("reason")
-        encrypted_data: dict = req.get("encrypted data")
         ml_overrides: Optional[Union[str, dict]] = req.get("ml_overrides", {})
         g.eid = stream = req.get("stream")
 
@@ -589,7 +608,6 @@ class Detect(Resource):
                 stream=stream,
                 options=stream_options,
                 ml_overrides=ml_overrides,
-                sub_options=None,
                 in_file=file_uploaded,
             )
 
@@ -612,10 +630,14 @@ class Detect(Resource):
                 else:
                     g.logger.debug(f"{lp} the secrets file has changed since it was last read, rebuilding config!")
                     mlc = None
+                    # reload the models
+                    m.set_ml_options({}, force_reload=True)
                     mlc, g = proc_conf(args, conf_globals=g, type_='mlapi')
             else:
                 g.logger.debug(f"{lp} the config file has changed since it was last read, rebuilding config!")
                 mlc = None
+                # reload the models
+                m.set_ml_options({}, force_reload=True)
                 mlc, g = proc_conf(args, conf_globals=g, type_='mlapi')
             if perf_config_hash:
                 g.logger.debug(
@@ -631,13 +653,11 @@ class Detect(Resource):
 
             # End of hash and reconfigure
             # Cache the credentials?
-            route_name: str = ''
             decrypted_data: dict = {}
             if encrypted_data:
                 # zm_keys is from the config file
                 if zm_keys:
                     # pop it so it doesnt mess up decrypting (it is not an encrypted string, will throw an exception)
-                    route_name = encrypted_data.pop('name')
                     g.logger.debug(2, f"{lp} encrypted credentials received, checking keystore "
                                       f"for '{route_name}'"
                                    )
@@ -691,6 +711,7 @@ class Detect(Resource):
                     g.logger.log_close(exit=1)
                 else:
                     g.api = ZMApi(options=api_options, api_globals=g, kickstart=decrypted_data)
+            g.Event, g.Monitor, g.Frame = g.api.get_all_event_data()
 
             stream_options = g.config.get("stream_sequence", {})
             if stream_options:  # if stream sequence in config use it
@@ -756,9 +777,9 @@ class Detect(Resource):
                     ml_options['alpr']['general']['alpr_detection_pattern'] = ml_overrides['alpr'][
                         'alpr_detection_pattern']
             # set ml_options for detect_stream
-            # todo ml_seqeuence before hashing total config so we know if anything in ml sequence changed,
+            # todo ml_sequence before hashing total config so we know if anything in ml sequence changed,
             #  if it did we need to force_reload models
-            m.set_ml_options(ml_options, force_reload=False)
+            m.set_ml_options(ml_options)
             # finish configuring stream options
             stream_options["polygons"] = polygons
             # run detections
@@ -766,7 +787,6 @@ class Detect(Resource):
                 stream=stream,
                 options=stream_options,
                 ml_overrides=ml_overrides,
-                sub_options=None,
                 in_file=file_uploaded,
             )
         # Merge stream-<model sequences> and regular detections logic for constructing reply
@@ -776,6 +796,7 @@ class Detect(Resource):
         success: bool = False
         img: Optional[Union[bytes, np.ndarray]] = None
         from requests_toolbelt import MultipartEncoder
+        # print(f'{matched_data = }')
         if matched_data.get("frame_id") and matched_data.get("image") is not None:
             success = True
             img = matched_data['image']

@@ -3,7 +3,7 @@ import argparse
 
 from pyzm.helpers.new_yaml import process_config as proc_conf
 from pyzm.helpers.pyzm_utils import LogBuffer
-from pyzm.helpers.new_yaml import GlobalConfig
+from pyzm.interface import GlobalConfig
 import pyzm.ml.face_train_dlib as train
 
 g = GlobalConfig()

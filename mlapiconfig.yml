@@ -105,15 +105,16 @@ processes: 1
 # and using the aliases that are piped out to bat to view the logs in color coded and themed output.
 pyzm_overrides:
   # levels
-  log_level_syslog: 5
-  log_level_file: 5
-  log_level_debug: 5
+  #log_level_syslog: 5
+  #log_level_file: 5
+  #log_level_debug: 5
   # dont log to the DB (-5)
-  log_level_db: -5
+  #log_level_db: -5
   # log levels -> 1 dbg/print/blank 0 info, -1 warn, -2 err, -3 fatal, -4 panic, -5 off (only for log_debug_file)
-  log_debug_file: 1
-  log_debug: True
-  log_debug_target: _zm_mlapi|_zmes
+  #log_debug_file: 1
+  #log_debug: True
+  #log_debug_target: _zm_mlapi|_zmes
+  #dump_console: True
 
 
 # Name of the user/group running mlapi (same as user for service file). Default: www-data or apache depending on system
@@ -126,6 +127,9 @@ pyzm_overrides:
 
 # Path to where you want the log file stored, not the name of the file, the directory (Default: {{base_data_path}}/logs)
 #log_path: /my/custom/log/path
+# Force creation of the log_path if it does not exist (may fail if insufficient privileges)
+#[Default: no]
+#log_path_force: yes
 
 # Name of the logfile DO NOT add trailing '.log' Default: zm_mlapi
 #log_name: mlapi-host1
@@ -227,19 +231,28 @@ yolo4_object_processor: gpu
 # ** NOTE THIS IS EXPERIMENTAL  If you see 'NaN' errors in yolo logs DISABLE this**
 #fp16_target: no
 
-# Yolo v3 on GPU (falls back to CPU if no GPU)
-yolo3_object_weights: '{{base_data_path}}/models/yolov3/yolov3.weights'
-yolo3_object_labels: '{{base_data_path}}/models/yolov3/coco.names'
-yolo3_object_config: '{{base_data_path}}/models/yolov3/yolov3.cfg'
+yolo3_models: '{{base_data_path}}/models/yolov3'
+# Yolo v4 on GPU (falls back to CPU if no GPU)
+yolo3_object_weights: '{{yolo3_models}}/yolov3.weights'
+yolo3_object_labels: '{{yolo3_models}}/coco.names'
+yolo3_object_config: '{{yolo3_models}}/yolov3.cfg'
 yolo3_object_framework: opencv
 yolo3_object_processor: gpu
 
 # Tiny Yolo V4 on GPU (falls back to CPU if no GPU)
-tinyyolo_object_config: '{{base_data_path}}/models/tinyyolov4/yolov4-tiny.cfg'
-tinyyolo_object_weights: '{{base_data_path}}/models/tinyyolov4/yolov4-tiny.weights'
-tinyyolo_object_labels: '{{base_data_path}}/models/tinyyolov4/coco.names'
+tinyyolo_models: '{{base_data_path}}/models/tinyyolov'
+tinyyolo_object_config: '{{tinyyolo_models}}4/yolov4-tiny.cfg'
+tinyyolo_object_weights: '{{tinyyolo_models}}4/yolov4-tiny.weights'
+tinyyolo_object_labels: '{{tinyyolo_models}}4/coco.names'
 tinyyolo_object_framework: opencv
 tinyyolo_object_processor: gpu
+# Tiny Yolo V3 on GPU (falls back to CPU if no GPU)
+#tinyyolo_models: '{{base_data_path}}/models/tinyyolov'
+#tinyyolo_object_config: '{{tinyyolo_models}}3/yolov3-tiny.cfg'
+#tinyyolo_object_weights: '{{tinyyolo_models}}3/yolov3-tiny.weights'
+#tinyyolo_object_labels: '{{tinyyolo_models}}3/coco.names'
+#tinyyolo_object_framework: opencv
+#tinyyolo_object_processor: gpu
 ###########################################
 #    ------ [ FACE MODEL SECTION ] ------
 ###########################################
