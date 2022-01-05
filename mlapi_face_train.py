@@ -26,7 +26,7 @@ args, u = ap.parse_known_args()
 args = vars(args)
 
 g.logger = LogBuffer()
-mlc, g = proc_conf(args, conf_globals=g, type_='mlapi')
+mlc, g = proc_conf(args, type_='mlapi')
 g.config = mlc.config
 
-train.FaceTrain(globs=g).train(size=args['size'])
+train.FaceTrain().train(size=args['size'])
