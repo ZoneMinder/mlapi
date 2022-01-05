@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 import json
 import signal
-import sys
 import time
 from argparse import ArgumentParser
-from functools import wraps
+from functools import wraps, partial
 from json import loads
 from mimetypes import guess_extension
-from collections import deque
 from pathlib import Path
 from threading import Thread
 from traceback import format_exc
@@ -45,6 +43,7 @@ JWT: JWTManager
 MAX_FILE_SIZE_MB: int = 5
 ALLOWED_EXTENSIONS: set = {'.png', '.jpg', '.gif', '.mp4'}
 ACCESS_TOKEN_EXPIRES: int = 60 * 60  # 1 hr
+g: GlobalConfig
 DEFAULT_CONFIG: dict = safe_load("""
 host: 0.0.0.0
 processes: 1
@@ -184,7 +183,7 @@ ml_sequence:
       sequence: []
 """)
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 lp: str = 'mlapi:'
 
 
@@ -213,16 +212,6 @@ def _parse_args() -> dict:
         "-c",
         "--config",
         help="config file with path"
-    )
-    ap.add_argument(
-        "--from-docker",
-        action="store_true",
-        default=False
-    )
-    ap.add_argument(
-        "--docker",
-        action="store_true",
-        default=False
     )
     ap.add_argument(
         "-vv",
@@ -276,27 +265,25 @@ def _parse_args() -> dict:
     return args
 
 
-def main(globs):
-    # How else to pass the GlobalConfig to the Detect class?
+def main():
+    global g
     app: Flask
     from pyzm.helpers.new_yaml import start_logs
-    from pyzm.helpers.pyzm_utils import LogBuffer, set_g
-    g = globs
+    from pyzm.helpers.pyzm_utils import LogBuffer
     bg_logs: Thread
     args = _parse_args()
+    g = GlobalConfig()
     g.DEFAULT_CONFIG = DEFAULT_CONFIG
     g.logger = LogBuffer()
     start = time.perf_counter()
-    mlc, g = proc_conf(args, conf_globals=g, type_='mlapi')
+    mlc, g = proc_conf(args, type_='mlapi')
     g.config = mlc.config
-    # UGLY! but it works
-    set_g(g)
     # start mlapi logs
     try:
         from pyzm.ZMLog import sig_intr, sig_log_rot
         g.logger.info(f"{lp}signal handlers: Setting up for log 'rotation' and log 'interrupt'")
-        signal.signal(signal.SIGHUP, sig_log_rot)
-        signal.signal(signal.SIGINT, sig_intr)
+        signal.signal(signal.SIGHUP, partial(sig_log_rot, g))
+        signal.signal(signal.SIGINT, partial(sig_intr, g))
     except Exception as e:
         g.logger.error(f'{lp} Error setting up log rotate and interrupt signal handlers -> \n{e}\n')
         raise e
@@ -306,10 +293,10 @@ def main(globs):
             'config': g.config,
             'args': args,
             'type_': 'mlapi',
-            'no_signal': True
+            'no_signal': True,
         }
     )
-    db: mlapi_user_db = mlapi_user_db.Database(db_globals=g, prompt_to_create=True if args.get('debug') else False)
+    db: mlapi_user_db = mlapi_user_db.Database(prompt_to_create=True if args.get('debug') else False)
     if not db.get_all_users():
         print(f"{lp} No users found in DB, please create at least 1 user -> python3 mlapi_dbuser.py")
         g.logger.log_close(exit=1)
@@ -324,8 +311,6 @@ def main(globs):
     g.logger.debug(
         f"perf:{lp}init: total time to build initial config -> {time.perf_counter() - start}"
     )
-    if args.get('from_docker') or args.get('docker'):
-        g.logger.info(f"{lp} {'--from-docker' if args.get('from_docker') else '--docker'} was passed, MLAPI is running inside of a docker environment")
     app = Flask(__name__)
     # Override the HTTP exception handler.
     app.handle_http_exception = get_http_exception_handler(app)
@@ -338,16 +323,14 @@ def main(globs):
     # reload on resource files change and better debug messages FOR FLASK ONLY, not bjoern
     app.debug = False
     # Construct the detector/filter pipeline.
-    m = DetectSequence(options=g.config['ml_sequence'], globs=g)
-    # JWT = JWTManager(app)
+    m = DetectSequence(options=g.config['ml_sequence'])
     configure_jwt(app)
-    flask_api.add_resource(Login, "/login", resource_class_kwargs={'globs': g, 'db': db})
-    flask_api.add_resource(Health, "/health", resource_class_kwargs={'globs': g})
+    flask_api.add_resource(Login, "/login", resource_class_kwargs={'db': db})
+    flask_api.add_resource(Health, "/health")
     flask_api.add_resource(
         Detect,
         "/detect/object",
         resource_class_kwargs={
-            'globs': g,
             'app': app,
             'args': args,
             'mlc': mlc,
@@ -480,7 +463,6 @@ def get_file(arguments, app: Flask):
 
 class Detect(Resource):
     def __init__(self, **kwargs):
-        self.globs: GlobalConfig = kwargs["globs"]
         self.app: Flask = kwargs["app"]
         self.args: dict = kwargs["args"]
         self.mlc: ConfigParse = kwargs["mlc"]
@@ -488,10 +470,10 @@ class Detect(Resource):
 
     @jwt_required
     def post(self):
+        global g
         m: DetectSequence = self.m
         app: Flask = self.app
         args: dict = self.args
-        g: GlobalConfig = self.globs
         mlc: Optional[ConfigParse] = self.mlc
 
         # noinspection PyCallingNonCallable
@@ -617,7 +599,7 @@ class Detect(Resource):
             perf_config_hash: Optional[time.perf_counter] = None
             if mlc is None:
                 g.logger.error(f"{lp} SOMETHING IS WRONG! there is no config object? BUILDING NOW!")
-                mlc, g = proc_conf(args, conf_globals=g, type_='mlapi')
+                mlc, g = proc_conf(args, type_='mlapi')
             else:
                 perf_config_hash = time.perf_counter()
                 re_configure = mlc.hash_compare('config')
@@ -632,13 +614,13 @@ class Detect(Resource):
                     mlc = None
                     # reload the models
                     m.set_ml_options({}, force_reload=True)
-                    mlc, g = proc_conf(args, conf_globals=g, type_='mlapi')
+                    mlc, g = proc_conf(args, type_='mlapi')
             else:
                 g.logger.debug(f"{lp} the config file has changed since it was last read, rebuilding config!")
                 mlc = None
                 # reload the models
                 m.set_ml_options({}, force_reload=True)
-                mlc, g = proc_conf(args, conf_globals=g, type_='mlapi')
+                mlc, g = proc_conf(args, type_='mlapi')
             if perf_config_hash:
                 g.logger.debug(
                     f"perf:{lp} total time to hash config/secrets -> "
@@ -712,6 +694,7 @@ class Detect(Resource):
                 else:
                     g.api = ZMApi(options=api_options, api_globals=g, kickstart=decrypted_data)
             g.Event, g.Monitor, g.Frame = g.api.get_all_event_data()
+            g.logger.debug(f"{g.Event = }")
 
             stream_options = g.config.get("stream_sequence", {})
             if stream_options:  # if stream sequence in config use it
@@ -777,7 +760,7 @@ class Detect(Resource):
                     ml_options['alpr']['general']['alpr_detection_pattern'] = ml_overrides['alpr'][
                         'alpr_detection_pattern']
             # set ml_options for detect_stream
-            # todo ml_sequence before hashing total config so we know if anything in ml sequence changed,
+            # todo ml_seqeuence before hashing total config so we know if anything in ml sequence changed,
             #  if it did we need to force_reload models
             m.set_ml_options(ml_options)
             # finish configuring stream options
@@ -846,12 +829,10 @@ class Detect(Resource):
 # generates a JWT token to use for auth
 class Login(Resource):
     def __init__(self, **kwargs):
-        self.globs: GlobalConfig = kwargs["globs"]
         self.db: mlapi_user_db = kwargs["db"]
 
     def post(self):
         # todo add rate limiter and access.log for Fail2Ban
-        g: GlobalConfig = self.globs
         db: mlapi_user_db = self.db
         if not request.is_json:
             abort(400, msg="Missing JSON in request")
@@ -884,11 +865,7 @@ class Login(Resource):
 
 # implement a basic health check.
 class Health(Resource):
-    def __init__(self, **kwargs):
-        self.globs: GlobalConfig = kwargs["globs"]
-
     def get(self):
-        g: GlobalConfig = self.globs
         # ip_addr = request.remote_addr or "N/A"
         # headers = request.headers
         # if headers.get('X-Forwarded-For'):
@@ -962,12 +939,7 @@ def configure_jwt(app):
 
 if __name__ == "__main__":
     try:
-        g: GlobalConfig = GlobalConfig()
-        main(g)
+        main()
     except Exception as ex:
         print(f"mlapi: MAIN LOGIC ERROR -> {ex}")
         print(format_exc())
-    finally:
-        # always set stdout and stderr back to original
-        stderr = sys.__stderr__
-        stdout = sys.__stdout__

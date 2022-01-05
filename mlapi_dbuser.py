@@ -6,7 +6,7 @@ from pyzm.helpers.new_yaml import process_config as proc_conf
 from pyzm.helpers.pyzm_utils import LogBuffer
 from pyzm.interface import GlobalConfig
 
-g = GlobalConfig()
+g: GlobalConfig = GlobalConfig()
 ap = ArgumentParser()
 ap.add_argument('-u', '--user', help='username to create')
 ap.add_argument('-p', '--password', help='password of user')
@@ -18,8 +18,8 @@ ap.add_argument('-c', '--config', default='./mlapiconfig.yml')
 args, u = ap.parse_known_args()
 args = vars(args)
 g.logger = LogBuffer()
-mlc, g = proc_conf(args, conf_globals=g, type_='mlapi')
-db = Database(prompt_to_create=False, db_globals=g)
+mlc, g = proc_conf(args, type_='mlapi')
+db = Database(prompt_to_create=False)
 
 if args.get('list'):
     print('----- Configured users ---------------')
