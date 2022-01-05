@@ -183,7 +183,7 @@ ml_sequence:
       sequence: []
 """)
 
-__version__ = "0.0.2"
+__version__ = "0.0.1"
 lp: str = 'mlapi:'
 
 
@@ -692,7 +692,7 @@ class Detect(Resource):
                         f"FATAL ERROR")
                     g.logger.log_close(exit=1)
                 else:
-                    g.api = ZMApi(options=api_options, api_globals=g, kickstart=decrypted_data)
+                    g.api = ZMApi(options=api_options, kickstart=decrypted_data)
             g.Event, g.Monitor, g.Frame = g.api.get_all_event_data()
             g.logger.debug(f"{g.Event = }")
 
