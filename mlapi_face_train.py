@@ -3,10 +3,10 @@ import argparse
 
 from pyzm.helpers.new_yaml import process_config as proc_conf
 from pyzm.helpers.pyzm_utils import LogBuffer
-import pyzm.helpers.globals as g
+from pyzm.interface import GlobalConfig
 import pyzm.ml.face_train_dlib as train
 
-
+g = GlobalConfig()
 ap = argparse.ArgumentParser()
 ap.add_argument('-c',
                 '--config',
@@ -26,7 +26,7 @@ args, u = ap.parse_known_args()
 args = vars(args)
 
 g.logger = LogBuffer()
-mlc, g = proc_conf(args, conf_globals=g, type_='mlapi')
+mlc, g = proc_conf(args, type_='mlapi')
 g.config = mlc.config
 
-train.FaceTrain(globs=g).train(size=args['size'])
+train.FaceTrain().train(size=args['size'])

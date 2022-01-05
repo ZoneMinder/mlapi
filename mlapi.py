@@ -1,21 +1,20 @@
-#!/usr/bin/python3
-# modified from source, original author @pliablepixels see: https://github.com/pliablepixels
-import datetime
+#!/usr/bin/env python3
 import json
 import signal
-import sys
+import time
 from argparse import ArgumentParser
-from collections import deque
-from functools import wraps
+from functools import wraps, partial
 from json import loads
 from mimetypes import guess_extension
 from pathlib import Path
 from threading import Thread
 from traceback import format_exc
-from typing import Optional
+from typing import Optional, Union
 
 import cryptography.exceptions
 import cv2
+# Pycharm hack for intellisense
+# from cv2 import cv2
 import numpy as np
 from cryptography.fernet import Fernet
 from flask import Flask, request, jsonify, Response
@@ -30,22 +29,161 @@ from flask_restful import Resource, Api, reqparse, abort, inputs
 from pydantic import BaseModel, validator
 from requests import get as req_get
 from werkzeug.datastructures import FileStorage
+from yaml import safe_load
 
 import pyzm.helpers.mlapi_db as mlapi_user_db
 from pyzm import __version__ as pyzm_version
 from pyzm.api import ZMApi
 from pyzm.helpers.new_yaml import ConfigParse, process_config as proc_conf
 from pyzm.helpers.pyzm_utils import str2bool, import_zm_zones
+from pyzm.interface import GlobalConfig
 from pyzm.ml.detect_sequence import DetectSequence
 
-__version__ = "0.0.1"
-m: DetectSequence
-app: Flask
-db: mlapi_user_db
-ml_options: dict = {}
-stream_options: dict = {}
-mlc: Optional[ConfigParse] = None
-JWT: Optional[JWTManager] = None
+JWT: JWTManager
+MAX_FILE_SIZE_MB: int = 5
+ALLOWED_EXTENSIONS: set = {'.png', '.jpg', '.gif', '.mp4'}
+ACCESS_TOKEN_EXPIRES: int = 60 * 60  # 1 hr
+g: GlobalConfig
+DEFAULT_CONFIG: dict = safe_load("""
+host: 0.0.0.0
+processes: 1
+port: 5000
+wsgi_server: flask
+
+model_sequence: 'object'
+same_model_high_conf: no
+sanitize_logs: no
+sanitize_str: <sanitized>
+log_user:
+log_group:
+log_name: 'zm_mlapi'
+log_path: './logs'
+base_data_path: '.'
+match_past_detections: no
+past_det_max_diff_area: '5%'
+
+
+zmes_keys: {}
+frame_set: snapshot,alarm,snapshot
+force_mpd: no
+secrets: ./mlapisecrets.yml
+auth_enabled: yes
+import_zm_zones: no
+only_triggered_zm_zones: no
+cpu_max_processes: 2
+cpu_max_lock_wait: 120
+gpu_max_processes: 2
+gpu_max_lock_wait: 120
+tpu_max_processes: 2
+tpu_max_lock_wait: 120
+
+image_path: './images'
+db_path: './db'
+wait: 0.0
+mlapi_secret_key: 'ChangeMe this is for creating the auth JWT for users to connect'
+max_detection_size: 90%
+contained_area: '1px'
+detection_sequence: object
+pyzm_overrides: {}
+
+smart_fs_thresh: 5
+disable_locks: no
+object_framework: opencv
+object_detection_pattern: (person|dog|car|truck)
+object_min_confidence: 0.6
+fp16_target: no
+show_models: no
+
+face_detection_pattern: .*
+face_detection_framework: dlib
+face_recognition_framework: dlib
+face_num_jitters: 0
+face_upsample_times: 0
+face_model: cnn
+face_train_model: cnn
+face_recog_dist_threshold: 0.6
+face_recog_knn_algo: ball_tree
+face_dlib_processor: gpu
+unknown_face_name: Unknown_Face
+save_unknown_faces: no
+save_unknown_faces_leeway_pixels: 100
+alpr_detection_pattern: .*
+alpr_api_type: cloud
+alpr_service: 
+alpr_url: 
+alpr_key: 
+platerec_stats: no
+platerec_regions: [ ]
+platerec_min_dscore: 0.1
+platerec_min_score: 0.2
+
+openalpr_recognize_vehicle: 1
+openalpr_country: us
+openalpr_state: ca
+openalpr_min_confidence: 0.3
+
+openalpr_cmdline_binary: alpr
+openalpr_cmdline_params: -j -d
+openalpr_cmdline_min_confidence: 0.3
+
+stream_sequence:
+  frame_strategy: 'most'
+  frame_set: snapshot,alarm,snapshot
+  contig_frames_before_error: 2
+  max_attempts: 4
+  sleep_between_attempts: 2
+  sleep_between_frames: 0.3
+  sleep_between_snapshots: 2
+  smart_fs_thresh: 5
+  resize: no
+  model_height: 416 
+  model_width: 416
+  tpu_model_height: 320
+  tpu_model_width: 320
+
+ml_sequence:
+  general:
+    model_sequence: object
+    disable_locks: no
+
+  object:
+      general:
+        object_detection_pattern: '(person|dog|cat|car|truck)'
+        same_model_sequence_strategy: most
+        contained_area: 1px
+
+      sequence:
+        - name: 'BUILT IN YOLO V4'
+          enabled: 'yes'
+          object_config: '{{yolo4_object_config}}'
+          object_weights: '{{yolo4_object_weights}}'
+          object_labels: '{{yolo4_object_labels}}'
+          object_min_confidence: '{{object_min_confidence}}'
+          object_framework: '{{yolo4_object_framework}}'
+          object_processor: 'gpu'
+          gpu_max_processes: '{{gpu_max_processes}}'
+          gpu_max_lock_wait: '{{gpu_max_lock_wait}}'
+          cpu_max_processes: '{{cpu_max_processes}}'
+          cpu_max_lock_wait: '{{cpu_max_lock_wait}}'
+          fp16_target: 'no'  # only applies to GPU, default is FP32
+          show_models: 'no'  # at current moment this is a global setting turned on by just setting it to : yes
+  alpr:
+    general:
+      same_model_sequence_strategy: 'first'
+      alpr_detection_pattern: '.*'
+
+    sequence: []
+
+  face:
+    general:
+      face_detection_pattern: '.*'
+        # combine results below
+      same_model_sequence_strategy: 'union'
+
+      sequence: []
+""")
+
+__version__ = "0.0.2"
 lp: str = 'mlapi:'
 
 
@@ -68,19 +206,8 @@ class GatewayConfig(BaseModel):
         return v
 
 
-def main():
-    global app, args, secrets_conf, m, ml_options, stream_options, db, mlc, g
-    bg_logs: Optional[Thread] = None
-    lp = 'mlapi:'
-    # -----------------------------------------------
-    # main init
-    # -----------------------------------------------
+def _parse_args() -> dict:
     ap = ArgumentParser()
-    ap.add_argument(
-        "--from-docker",
-        action="store_true",
-        default=False
-    )
     ap.add_argument(
         "-c",
         "--config",
@@ -113,7 +240,8 @@ def main():
     ap.add_argument(
         "-fs",
         "--from-service",
-        help="starting mlapi from a service wrapper that handles restarting mlapi, so mlapi doesnt handle its own restarts",
+        help="starting mlapi from a service wrapper that handles restarting mlapi, so mlapi "
+             "doesnt handle its own restarts",
         action="store_true",
     )  # this may not matter at all
     ap.add_argument(
@@ -134,30 +262,45 @@ def main():
         else:
             print("--config/-c required (Default: ./mlapiconfig.yml) does not exist or is not a file")
             exit(1)
+    return args
 
-    import pyzm.helpers.globals as mlapi_g
+
+def main():
+    global g
+    app: Flask
     from pyzm.helpers.new_yaml import start_logs
-    from pyzm.helpers.pyzm_utils import LogBuffer, set_g
-    from pyzm.ZMLog import sig_intr, sig_log_rot
-    mlapi_g.logger = LogBuffer()
-    start = datetime.datetime.now()
-    mlc, g = proc_conf(args, conf_globals=mlapi_g, type_='mlapi')
+    from pyzm.helpers.pyzm_utils import LogBuffer
+    bg_logs: Thread
+    args = _parse_args()
+    g = GlobalConfig()
+    g.DEFAULT_CONFIG = DEFAULT_CONFIG
+    g.logger = LogBuffer()
+    start = time.perf_counter()
+    mlc, g = proc_conf(args, type_='mlapi')
     g.config = mlc.config
-    # UGLY! but it works
-    set_g(g)
     # start mlapi logs
-    g.logger.info(f"{lp}signal handlers: Setting up for log 'rotation' and log 'interrupt'")
-    signal.signal(signal.SIGHUP, sig_log_rot)
-    signal.signal(signal.SIGINT, sig_intr)
+    try:
+        from pyzm.ZMLog import sig_intr, sig_log_rot
+        g.logger.info(f"{lp}signal handlers: Setting up for log 'rotation' and log 'interrupt'")
+        signal.signal(signal.SIGHUP, partial(sig_log_rot, g))
+        signal.signal(signal.SIGINT, partial(sig_intr, g))
+    except Exception as e:
+        g.logger.error(f'{lp} Error setting up log rotate and interrupt signal handlers -> \n{e}\n')
+        raise e
     bg_logs = Thread(
         target=start_logs,
         kwargs={
             'config': g.config,
             'args': args,
-            '_type': 'mlapi',
-            'no_signal': True
+            'type_': 'mlapi',
+            'no_signal': True,
         }
     )
+    db: mlapi_user_db = mlapi_user_db.Database(prompt_to_create=True if args.get('debug') else False)
+    if not db.get_all_users():
+        print(f"{lp} No users found in DB, please create at least 1 user -> python3 mlapi_dbuser.py")
+        g.logger.log_close(exit=1)
+        exit(1)
     bg_logs.start()
     wsgi_config = GatewayConfig(
         host=g.config["host"],
@@ -166,34 +309,34 @@ def main():
         wsgi=g.config['wsgi_server']
     )
     g.logger.debug(
-        f"perf:{lp}init: total time to build initial config -> {(datetime.datetime.now() - start).total_seconds()}"
+        f"perf:{lp}init: total time to build initial config -> {time.perf_counter() - start}"
     )
-    if args.get('from_docker'):
-        g.logger.info(f"{lp} --from-docker was passed, MLAPI is running inside of a docker environment")
     app = Flask(__name__)
     # Override the HTTP exception handler.
     app.handle_http_exception = get_http_exception_handler(app)
     flask_api = Api(app, prefix="/api/v1")
     app.config["UPLOAD_FOLDER"] = g.config["image_path"]
-    app.config["MAX_CONTENT_LENGTH"] = g.MAX_FILE_SIZE_MB * 1024 * 1024
+    app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE_MB * 1024 * 1024
     app.config["JWT_SECRET_KEY"] = g.config["mlapi_secret_key"]
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = g.ACCESS_TOKEN_EXPIRES
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = ACCESS_TOKEN_EXPIRES
     app.config["PROPAGATE_EXCEPTIONS"] = True
     # reload on resource files change and better debug messages FOR FLASK ONLY, not bjoern
     app.debug = False
-    # JWT = JWTManager(app)
-    configure_jwt(app)
-    flask_api.add_resource(Login, "/login")
-    flask_api.add_resource(Detect, "/detect/object")
-    flask_api.add_resource(Health, "/health")
-    # user DB for mlapi logins, mlapi does not allow for no auth, so there will always be a user DB of PW hashes
-    # prompt to create wont work unless we are printing to console
-    db = mlapi_user_db.Database(db_globals=g, prompt_to_create=True if args.get('debug') else False)
-    if not db.get_all_users():
-        print(f"{lp} No users found in DB, please create at least 1 user -> python3 mlapi_dbuser.py")
-        g.logger.log_close(exit=1)
     # Construct the detector/filter pipeline.
-    m = DetectSequence(options=g.config['ml_sequence'], globs=g)
+    m = DetectSequence(options=g.config['ml_sequence'])
+    configure_jwt(app)
+    flask_api.add_resource(Login, "/login", resource_class_kwargs={'db': db})
+    flask_api.add_resource(Health, "/health")
+    flask_api.add_resource(
+        Detect,
+        "/detect/object",
+        resource_class_kwargs={
+            'app': app,
+            'args': args,
+            'mlc': mlc,
+            'm': m
+        }
+    )
 
     g.logger.info(
         f"|*** FORKED NEO - Machine Learning API (mlapi) version: {__version__} - pyzm version: {pyzm_version} - "
@@ -240,6 +383,10 @@ def main():
             g.logger.error(exc)
             g.logger.error(f"{lp} error trying to use Flask as 'wsgi_server'")
             print(format_exc())
+    if not wsgi_config.wsgi == 'flask' or not wsgi_config.wsgi == 'bjoern':
+        g.logger.error(f"{lp} ERROR-> Only 'bjoern' and 'flask' for WSGI server! Exiting")
+        g.logger.log_close(exit=1)
+        exit(1)
 
 
 # split filename and return extension
@@ -250,7 +397,7 @@ def file_ext(string):
 
 # Checks if filename is allowed
 def allowed_ext(ext):
-    return ext.lower() in g.ALLOWED_EXTENSIONS
+    return ext.lower() in ALLOWED_EXTENSIONS
 
 
 def parse_args():
@@ -267,7 +414,7 @@ def parse_args():
 
 
 # download file locally and store with unique name
-def get_file(arguments):
+def get_file(arguments, app: Flask):
     from uuid import uuid4
     lp = "mlapi:get_file:"
     unique_filename = str(uuid4())
@@ -315,16 +462,31 @@ def get_file(arguments):
 
 
 class Detect(Resource):
+    def __init__(self, **kwargs):
+        self.app: Flask = kwargs["app"]
+        self.args: dict = kwargs["args"]
+        self.mlc: ConfigParse = kwargs["mlc"]
+        self.m: DetectSequence = kwargs["m"]
+
     @jwt_required
     def post(self):
-        def cryptor(crypt: Fernet, data: dict):
+        global g
+        m: DetectSequence = self.m
+        app: Flask = self.app
+        args: dict = self.args
+        mlc: Optional[ConfigParse] = self.mlc
+
+        # noinspection PyCallingNonCallable
+        def _crypt(crypt: Fernet, data: dict):
             # crypt will be either f.encode or f.decode objects. crypt() calls the method
-            processed_data = {}
+            processed_data: dict = {}
             for enc_key, enc_val in data.items():
+                enc_key: str
+                enc_val: Optional[str]
                 if enc_val is not None:
                     try:
-                        dec_key = crypt(enc_key.encode('utf-8'))
-                        dec_data = crypt(enc_val.encode('utf-8'))
+                        dec_key: bytes = crypt(enc_key.encode('utf-8'))
+                        dec_data: bytes = crypt(enc_val.encode('utf-8'))
                     except cryptography.exceptions.InvalidSignature:
                         g.logger.error(
                             f"{lp} The encryption key for '{route_name}' may not match! please check "
@@ -350,60 +512,65 @@ class Detect(Resource):
                         processed_data[dec_key.decode('utf-8')] = dec_data.decode('utf-8')
             return processed_data
 
-        lp = 'mlapi:detect:'
-        global stream_options, ml_options, mlc, g
-        fi = None
-        stream = None
-        mid = None
-        stream_options = {}
-        ml_overrides = {}
-        ml_options = {}
-        file_uploaded = False
-        req = None
-        ip_addr = request.remote_addr or "N/A"
+        lp: str = 'mlapi:detect:'
+        fi: Optional[str] = None
+        stream: Optional[Union[str, int]] = None
+        mid: Optional[int] = None
+        stream_options: dict = {}
+        ml_overrides: dict = {}
+        ml_options: dict = {}
+        file_uploaded: bool = False
+        req: Optional[dict] = None
+
+        remote_ip_address: Optional[str] = request.remote_addr or "N/A"
         if request.headers.get("X-Forwarded-For"):
             g.logger.debug(f"{lp} X-Forwarded-For header found - {request.headers.get('X-Forwarded-For')}")
-            ip_addr = request.headers.get("X-Forwarded-For", 'N/A')
-        req_args = parse_args()
+            remote_ip_address = request.headers.get("X-Forwarded-For", 'N/A')
+        elif request.headers.get("X-Real-IP"):
+            g.logger.debug(f"{lp} X-Real-IP header found - {request.headers.get('X-Real-IP')}")
+            remote_ip_address = request.headers.get("X-Real-IP", 'N/A')
+
+        req_args: dict = parse_args()
 
         # Work around for when sending a file over from ZMES
         if request.files.get('json'):  # JSON
             req = loads(request.files['json'].read())
         else:
             req = request.get_json()
+
         if not req:
             g.logger.debug(f"{lp} the request is EMPTY")
             abort(400, msg="Request EMPTY")
+
         if request.files.get('image'):
             req_args['file'] = request.files.get('image')
             file_uploaded = True
+        # todo: access.log
         encrypted_data: dict = req.get("encrypted data")
         route_name: str = ''
         route_data_str: str = ""
         if encrypted_data:
             route_name = encrypted_data.pop('name')
             route_data_str = f" coming in on route '{route_name}'"
-
         g.logger.debug(f"{lp} The detection request is for MLAPI DB user '{get_jwt_identity()}'"
-                       f" using IP address -> {ip_addr}{route_data_str}")
-        zmes_stream_options = req.get("stream_options")
-        reason = req.get("reason")
-        ml_overrides = req.get("ml_overrides", {})
+                       f" using IP address -> {remote_ip_address}{route_data_str}")
+        zmes_stream_options: Optional[dict] = req.get("stream_options")
+        reason: Optional[str] = req.get("reason")
+        ml_overrides: Optional[Union[str, dict]] = req.get("ml_overrides", {})
         g.eid = stream = req.get("stream")
-        sub_options = None
 
         g.mid = mid = int(req.get("mid", 0))
-        zm_keys = g.config.get('zmes_keys')
+        zm_keys: Optional[Union[str, dict]] = g.config.get('zmes_keys')
         # g.logger.debug(f"\n{req_args = }\n{req = }\n{request=}\n")
 
         # STREAM REQUEST
         if req_args["type"].startswith('stream-'):
-            type_ = req_args["type"].split('stream-')[1]
+            type_: str = req_args["type"].split('stream-')[1]
 
             g.logger.debug(f"{lp} STREAM requesting object detection for type: '{type_}'")
             g.config = mlc.config
 
-            fip, ext = get_file(req_args)
+            fip, ext = get_file(req_args, app)
             stream = fi = f"{fip}{ext}"
             if not stream:
                 g.logger.error(f"{lp} there is something wrong with storing the downloaded file!")
@@ -423,19 +590,18 @@ class Detect(Resource):
                 stream=stream,
                 options=stream_options,
                 ml_overrides=ml_overrides,
-                sub_options=None,
                 in_file=file_uploaded,
             )
 
         else:
-            re_configure = None
-            sec_hash = None
-            perf_config_hash = None
+            re_configure: bool = False
+            sec_hash: bool = False
+            perf_config_hash: Optional[time.perf_counter] = None
             if mlc is None:
-                g.logger.error(f"{lp} SOMETHING IS VERY WRONG! there is no config object? BUILDING!")
-                mlc, g = proc_conf(args, conf_globals=g, type_='mlapi')
+                g.logger.error(f"{lp} SOMETHING IS WRONG! there is no config object? BUILDING NOW!")
+                mlc, g = proc_conf(args, type_='mlapi')
             else:
-                perf_config_hash = datetime.datetime.now()
+                perf_config_hash = time.perf_counter()
                 re_configure = mlc.hash_compare('config')
 
             if re_configure:
@@ -446,17 +612,19 @@ class Detect(Resource):
                 else:
                     g.logger.debug(f"{lp} the secrets file has changed since it was last read, rebuilding config!")
                     mlc = None
-                    mlc, g = proc_conf(args, conf_globals=g, type_='mlapi')
-                    m.set_ml_options(force_reload=True)
+                    # reload the models
+                    m.set_ml_options({}, force_reload=True)
+                    mlc, g = proc_conf(args, type_='mlapi')
             else:
                 g.logger.debug(f"{lp} the config file has changed since it was last read, rebuilding config!")
                 mlc = None
-                mlc, g = proc_conf(args, conf_globals=g, type_='mlapi')
-                m.set_ml_options(force_reload=True)
+                # reload the models
+                m.set_ml_options({}, force_reload=True)
+                mlc, g = proc_conf(args, type_='mlapi')
             if perf_config_hash:
                 g.logger.debug(
                     f"perf:{lp} total time to hash config/secrets -> "
-                    f"{(datetime.datetime.now() - perf_config_hash).total_seconds()}"
+                    f"{time.perf_counter() - perf_config_hash}"
                 )
             if mid in mlc.monitor_overrides:
                 g.logger.debug(f"{lp} monitor {mid} has an overrode configuration built, switching to it...")
@@ -467,10 +635,11 @@ class Detect(Resource):
 
             # End of hash and reconfigure
             # Cache the credentials?
-            decrypted_data = {}
+            decrypted_data: dict = {}
             if encrypted_data:
                 # zm_keys is from the config file
                 if zm_keys:
+                    # pop it so it doesnt mess up decrypting (it is not an encrypted string, will throw an exception)
                     g.logger.debug(2, f"{lp} encrypted credentials received, checking keystore "
                                       f"for '{route_name}'"
                                    )
@@ -480,9 +649,10 @@ class Detect(Resource):
                                        f"mistakes or key mismatch!"
                                        )
                         raise ValueError(f"No encryption key in zmes_keys for {route_name}!")
-                    key = f'{zm_keys.get(route_name)}'.encode('utf-8')
-                    f = Fernet(key)
-                    decrypted_data = cryptor(f.decrypt, encrypted_data)
+                    key: bytes = f'{zm_keys.get(route_name)}'.encode('utf-8')
+                    f: Fernet = Fernet(key)
+                    # noinspection PyTypeChecker
+                    decrypted_data = _crypt(f.decrypt, encrypted_data)
                     g.config['allow_self_signed'] = str2bool(decrypted_data.get('allow_self_signed'))
                     # print(f"{decrypted_kickstart = }")
                     # print(f"{decrypted_data = }")
@@ -492,7 +662,6 @@ class Detect(Resource):
                                           f"ZoneMinder API for '{route_name}'"
                                        )
                     # Figure out if logging in or assuming a token
-                    g.config['zm_creds'] = decrypted_data
                 else:
                     g.logger.error(f"{lp} ZMES sent encrypted data but there is no keystore configured in "
                                    f"'{Path(args['config']).name}' - Create the 'zmes_keys' option in the config file "
@@ -503,14 +672,15 @@ class Detect(Resource):
                 g.logger.error(f"{lp} ZMES did not send any encrypted credentials, unable to reply!")
                 abort(400, msg=f"You must send encrypted credentials to reply with!")
 
-            if zm_keys:
+            if decrypted_data:
                 # we have decrypted data
-                api_options = {
+                api_options: dict[str, Union[str, bool]] = {
                     # sent from ZMES
-                    "apiurl": g.config["zm_creds"].get('api_url'),
-                    "portalurl": g.config["zm_creds"].get("portal_url"),
-                    "user": g.config["zm_creds"].get('user'),
-                    "password": g.config["zm_creds"].get('password'),
+                    "apiurl": decrypted_data.get('api_url'),
+                    "portalurl": decrypted_data.get("portal_url"),
+                    "user": decrypted_data.get('user'),
+                    "password": decrypted_data.get('password'),
+                    # This was popped out of the encrypted_data dict before it went through the decrypter
                     "disable_ssl_cert_check": str2bool(g.config["allow_self_signed"]),
                     # from mlapi config file
                     "sanitize_portal": str2bool(g.config.get("sanitize_logs")),
@@ -523,6 +693,8 @@ class Detect(Resource):
                     g.logger.log_close(exit=1)
                 else:
                     g.api = ZMApi(options=api_options, api_globals=g, kickstart=decrypted_data)
+            g.Event, g.Monitor, g.Frame = g.api.get_all_event_data()
+            g.logger.debug(f"{g.Event = }")
 
             stream_options = g.config.get("stream_sequence", {})
             if stream_options:  # if stream sequence in config use it
@@ -530,6 +702,10 @@ class Detect(Resource):
             else:
                 g.logger.debug(2, f"{lp} 'stream_sequence' not configured, relying on ZMES stream_sequence")
                 stream_options = zmes_stream_options
+            if not stream_options:
+                g.logger.error(f"{lp} NO STREAM_SEQUENCE ?!")
+                abort(400, msg="No stream options after processing local and sent arguments")
+
             # Past event logic, pass along
             g.config["PAST_EVENT"] = stream_options["PAST_EVENT"] = zmes_stream_options.get("PAST_EVENT")
             # resize HAS to be sent from ZMES, if the 2 get out of sync on this, bounding boxes wont be correct
@@ -539,20 +715,13 @@ class Detect(Resource):
                 try:
                     if isinstance(rs, str) and rs != 'no':
                         rs = round(float(rs))
-                except Exception as exc:
+                except Exception:
                     g.logger.error(f"{lp} 'resize' can only be a number (xx / xx.yy) or 'no'! setting to 'no' ")
                     rs = 'no'
                 finally:
                     g.config["resize"] = stream_options["resize"] = rs
                     g.logger.debug(f"{lp} ZMES has resize={rs} configured, propagating...")
 
-            if not stream_options:
-                g.logger.error(f"{lp} NO STREAM_SEQUENCE ?!")
-                abort(400, msg="No stream options after processing local and sent arguments")
-
-            # Create new object so modifying does not pollute source
-            # There will be no reason if it's a Past event
-            # DO zm zones and only triggered
             global_import = g.config.get('import_zm_zones')
             mid_import = mlc.monitor_overrides.get(mid, {}).get('import_zm_zones')
             if str2bool(global_import) or str2bool(mid_import):
@@ -565,10 +734,10 @@ class Detect(Resource):
                 stream_options["delay"] = g.config.get("wait")
             if not stream:
                 g.logger.debug(
-                    f"{lp} stream info not found (no event or local file to process) looking in request from {ip_addr}"
-                    f" for an attached image/video file..."
+                    f"{lp} stream info not found (no event or local file to process) looking in request from "
+                    f"{remote_ip_address} for an attached image/video file..."
                 )
-                fip, ext = get_file(req_args)
+                fip, ext = get_file(req_args, app)
                 fi = f"{fip}{ext}"
                 stream = fi
                 if stream is None:
@@ -593,7 +762,7 @@ class Detect(Resource):
             # set ml_options for detect_stream
             # todo ml_seqeuence before hashing total config so we know if anything in ml sequence changed,
             #  if it did we need to force_reload models
-            m.set_ml_options(ml_options, force_reload=False)
+            m.set_ml_options(ml_options)
             # finish configuring stream options
             stream_options["polygons"] = polygons
             # run detections
@@ -601,31 +770,36 @@ class Detect(Resource):
                 stream=stream,
                 options=stream_options,
                 ml_overrides=ml_overrides,
-                sub_options=None,
                 in_file=file_uploaded,
             )
         # Merge stream-<model sequences> and regular detections logic for constructing reply
         # img: cv2.imdecode = matched_data['image']
         # create new instance with copy of the image in bytes
 
-        success = False
+        success: bool = False
+        img: Optional[Union[bytes, np.ndarray]] = None
         from requests_toolbelt import MultipartEncoder
+        # print(f'{matched_data = }')
         if matched_data.get("frame_id") and matched_data.get("image") is not None:
             success = True
             img = matched_data['image']
             img = cv2.imencode('.jpg', img)[1]
+            # Save the matched frame to disk to verify
             # save_img = img.copy()
-            # cv2.imwrite(f"/tmp/mlapi-match-{g.eid}-{matched_data['frame_id']}.jpg", cv2.imdecode(save_img, cv2.IMREAD_UNCHANGED))
-            # print(f"saveing matching image from to /tmp")
+            # cv2.imwrite(
+            #     f"/tmp/mlapi-match-{g.eid}-{matched_data['frame_id']}.jpg",
+            #     cv2.imdecode(save_img, cv2.IMREAD_UNCHANGED)
+            # )
+            # print(f"saving matching image from to /tmp")
             img = img.tobytes()
             # Remove the numpy.ndarray formatted image from matched_data because it is not JSON serializable
             matched_data['image'] = None
-            resp_json = {
+            resp_json: dict[str, Optional[Union[bool, dict]]] = {
                 'success': success,
                 'matched_data': matched_data,
                 'all_matches': None,
             }
-            multipart_encoded_data = MultipartEncoder(
+            multipart_encoded_data: MultipartEncoder = MultipartEncoder(
                 fields={
                     'json': (None, json.dumps(resp_json), 'application/json'),
                     'image': (f"event-{g.eid}-frame-{matched_data['frame_id']}.jpg", img, 'application/octet')
@@ -637,7 +811,7 @@ class Detect(Resource):
             # g.logger.debug(f"{lp} returning all detection data -> {all_matches}")
             # response = Response(multipart_encoded_data.to_string(), mimetype=multipart_encoded_data.content_type)
         else:
-            resp_json = {
+            resp_json: dict[str, Optional[Union[bool, dict]]] = {
                 'success': success,
                 'matched_data': matched_data,
                 'all_matches': all_matches,
@@ -654,54 +828,68 @@ class Detect(Resource):
 
 # generates a JWT token to use for auth
 class Login(Resource):
-    @staticmethod
-    def post():
+    def __init__(self, **kwargs):
+        self.db: mlapi_user_db = kwargs["db"]
+
+    def post(self):
         # todo add rate limiter and access.log for Fail2Ban
+        db: mlapi_user_db = self.db
         if not request.is_json:
             abort(400, msg="Missing JSON in request")
-        ip_addr = request.remote_addr or "N/A"
-        headers = request.headers
+        remote_ip_address: str = request.remote_addr or "N/A"
+        headers: dict = request.headers
         if headers.get('X-Forwarded-For'):
-            g.logger.debug(f"{lp}login: X-Forwarded-For headers from {ip_addr} - {headers.get('X-Forwarded-For')}")
-            ip_addr = headers.get('X-Forwarded-For')
+            g.logger.debug(f"{lp}login: X-Forwarded-For headers from {remote_ip_address} "
+                           f"- {headers.get('X-Forwarded-For')}")
+            remote_ip_address = headers.get('X-Forwarded-For')
         elif headers.get('X-Real-IP'):
-            g.logger.debug(f"{lp}login: X-Real-IP headers from {ip_addr} - {headers.get('X-Real-IP')}")
-            ip_addr = headers.get('X-Real-IP')
+            g.logger.debug(f"{lp}login: X-Real-IP headers changing remote address from {remote_ip_address} "
+                           f"- {headers.get('X-Real-IP')}")
+            remote_ip_address = headers.get('X-Real-IP')
 
-        username = request.json.get("username", None)
-        password = request.json.get("password", None)
+        username: Optional[str] = request.json.get("username")
+        password: Optional[str] = request.json.get("password")
         if not username:
             abort(400, msg="Missing username in request")
         elif not password:
             abort(400, message="Missing password")
-        if not db.check_credentials(username, password, ip=ip_addr):
+        if not db.check_credentials(username, password, ip=remote_ip_address):
             abort(401, message="incorrect credentials")
 
         # Identity can be any data that is json serializable
-        access_token = create_access_token(identity=username)
-        response = jsonify(access_token=access_token, expires=g.ACCESS_TOKEN_EXPIRES)
+        access_token: str = create_access_token(identity=username)
+        response: jsonify = jsonify(access_token=access_token, expires=ACCESS_TOKEN_EXPIRES)
         response.status_code = 200
         return response
 
 
 # implement a basic health check.
 class Health(Resource):
-    @staticmethod
-    def get():
-        response = jsonify("ok")
+    def get(self):
+        # ip_addr = request.remote_addr or "N/A"
+        # headers = request.headers
+        # if headers.get('X-Forwarded-For'):
+        #     g.logger.debug(f"{lp}login: X-Forwarded-For headers from {ip_addr} - {headers.get('X-Forwarded-For')}")
+        #     ip_addr = headers.get('X-Forwarded-For')
+        # elif headers.get('X-Real-IP'):
+        #     g.logger.debug(
+        #         f"{lp}login: X-Real-IP headers changing remote address from {ip_addr} - {headers.get('X-Real-IP')}")
+        #     ip_addr = headers.get('X-Real-IP')
+        # todo: add the /health endpoint to access.log (may be helpful in identifying a pattern
+        #  or something if you have MLAPI exposed)
+        response: jsonify = jsonify("ok")
         response.status_code = 200
         return response
 
 
-def get_http_exception_handler(app):
+def get_http_exception_handler(app: Flask):
     """Overrides the default http exception handler to return JSON."""
-    handle_http_exception = app.handle_http_exception
+    handle_http_exception: app.handle_http_exception = app.handle_http_exception
 
     @wraps(handle_http_exception)
     def ret_val(exception):
-        exc = handle_http_exception(exception)
+        exc: exception = handle_http_exception(exception)
         return jsonify({"code": exc.code, "msg": exc.description}), exc.code
-
     return ret_val
 
 
@@ -710,7 +898,7 @@ def configure_jwt(app):
     JWT = JWTManager(app)
 
     @JWT.unauthorized_loader
-    def unauth_jwt(error):
+    def unauthorized_jwt(error):
         ip_addr = request.remote_addr or "N/A"
         g.logger.info(
             f"mlapi:JWT: FAILED IP: {ip_addr} -> [UNAUTHORIZED JWT]: {error}")
@@ -755,7 +943,3 @@ if __name__ == "__main__":
     except Exception as ex:
         print(f"mlapi: MAIN LOGIC ERROR -> {ex}")
         print(format_exc())
-    finally:
-        # always set stdout and stderr back to original
-        stderr = sys.__stderr__
-        stdout = sys.__stdout__

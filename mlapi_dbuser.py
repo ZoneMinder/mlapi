@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-import pyzm.helpers.globals as g
 from pyzm.helpers.mlapi_db import Database
 from argparse import ArgumentParser
 from pyzm.helpers.new_yaml import process_config as proc_conf
 from pyzm.helpers.pyzm_utils import LogBuffer
+from pyzm.interface import GlobalConfig
 
+g: GlobalConfig = GlobalConfig()
 ap = ArgumentParser()
 ap.add_argument('-u', '--user', help='username to create')
 ap.add_argument('-p', '--password', help='password of user')
@@ -17,8 +18,8 @@ ap.add_argument('-c', '--config', default='./mlapiconfig.yml')
 args, u = ap.parse_known_args()
 args = vars(args)
 g.logger = LogBuffer()
-mlc, g = proc_conf(args, conf_globals=g, type_='mlapi')
-db = Database(prompt_to_create=False, db_globals=g)
+mlc, g = proc_conf(args, type_='mlapi')
+db = Database(prompt_to_create=False)
 
 if args.get('list'):
     print('----- Configured users ---------------')
@@ -32,7 +33,7 @@ if args.get('remove'):
         print(f'User: {u} not found')
     else:
         db.delete_user(args.get('remove'))
-        print('OK - User Removed')
+        print(f"OK - User '{u}' removed")
     exit(0)
 
 if not args.get('user') or not args.get('password'):
