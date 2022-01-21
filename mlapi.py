@@ -342,6 +342,7 @@ def main():
         f"|*** FORKED NEO - Machine Learning API (mlapi) version: {__version__} - pyzm version: {pyzm_version} - "
         f"OpenCV version: {cv2.__version__} ***|"
     )
+
     if wsgi_config.wsgi == "bjoern":
         try:
             import bjoern
@@ -372,6 +373,7 @@ def main():
             f"mlapi: using 'Flask' with a maximum of '{wsgi_config.processes}' processes as WSGI server "
             f"@ {wsgi_config.host}:{wsgi_config.port}"
         )
+
         try:
             app.run(
                 host=wsgi_config.host,
@@ -557,7 +559,7 @@ class Detect(Resource):
         zmes_stream_options: Optional[dict] = req.get("stream_options")
         reason: Optional[str] = req.get("reason")
         ml_overrides: Optional[Union[str, dict]] = req.get("ml_overrides", {})
-        g.eid = stream = req.get("stream")
+        g.eid = stream = int(req.get("stream"))
 
         g.mid = mid = int(req.get("mid", 0))
         zm_keys: Optional[Union[str, dict]] = g.config.get('zmes_keys')
@@ -636,10 +638,11 @@ class Detect(Resource):
             # End of hash and reconfigure
             # Cache the credentials?
             decrypted_data: dict = {}
+
             if encrypted_data:
                 # zm_keys is from the config file
                 if zm_keys:
-                    # pop it so it doesnt mess up decrypting (it is not an encrypted string, will throw an exception)
+                    # pop it so it doesn't mess up decrypting (it is not an encrypted string, will throw an exception)
                     g.logger.debug(2, f"{lp} encrypted credentials received, checking keystore "
                                       f"for '{route_name}'"
                                    )
