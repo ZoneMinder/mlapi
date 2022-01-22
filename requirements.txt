@@ -12,7 +12,6 @@ flask_restful ~= 0.3.8
 flask ~= 1.1.2
 scikit_learn
 progressbar33
-bjoern
 configupdater
 pydantic
 pyyaml
