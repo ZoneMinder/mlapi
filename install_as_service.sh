@@ -5,14 +5,19 @@
 # Only for ubuntu
 #-----------------------------------------------------
 
+# You can feed it USER_ GROUP_ and TARGET_MLAPI_DIR from the cli if desired.
 
-TARGET_MLAPI_DIR="/var/lib/zmeventnotification/mlapi"
+TARGET_MLAPI_DIR=${TARGET_MLAPI_DIR:-"/var/lib/zmeventnotification/mlapi"}
 RSYNC="rsync -av --progress"
+# user and group
+USER_=${USER_:-'www-data'}
+GROUP_=${GROUP_:-'www-data'}
+
 
 echo "This is really just my internal script to run mlapi as a service"
 echo "You probably need to modify mlapi.service and this script"
 echo "Which means, you likely don't want to run this..."
-echo "*** IF YOU INSTALL MLAPI ON DIFF HOST THAN ZMES, make sure to change the user in these scripts!"
+echo "*** IF YOU INSTALL MLAPI ON DIFF HOST THAN ZMES, make sure to change the user ($USER_) and group ($GROUP_) in these scripts!"
 echo
 read -p "Meh. I know what I'm doing. INSTALL! (Press some key...)"
 
@@ -64,16 +69,16 @@ then
     EXCLUDE_PATTERN="${EXCLUDE_PATTERN} --exclude unknown_faces"
 fi
 
-if [ -f "${TARGET_MLAPI_DIR}/mlapiconfig.ini" ]
+if [ -f "${TARGET_MLAPI_DIR}/mlapiconfig.yml" ]
 then
-    echo "Skipping mlapiconfig.ini file as it already exists in: ${TARGET_MLAPI_DIR}"
-    EXCLUDE_PATTERN="${EXCLUDE_PATTERN} --exclude mlapiconfig.ini"
+    echo "Skipping mlapiconfig.yml file as it already exists in: ${TARGET_MLAPI_DIR}"
+    EXCLUDE_PATTERN="${EXCLUDE_PATTERN} --exclude mlapiconfig.yml"
 fi
 
-if [ -f "${TARGET_MLAPI_DIR}/secrets.ini" ]
+if [ -f "${TARGET_MLAPI_DIR}/mlapisecrets.yml" ]
 then
-    echo "Skipping secrets.ini file as it already exists in: ${TARGET_MLAPI_DIR}"
-    EXCLUDE_PATTERN="${EXCLUDE_PATTERN} --exclude secrets.ini"
+    echo "Skipping mlapisecrets.yml file as it already exists in: ${TARGET_MLAPI_DIR}"
+    EXCLUDE_PATTERN="${EXCLUDE_PATTERN} --exclude mlapisecrets.yml"
 fi
 
 
@@ -81,12 +86,12 @@ echo ${RSYNC} . ${TARGET_MLAPI_DIR} ${EXCLUDE_PATTERN}
 ${RSYNC} . ${TARGET_MLAPI_DIR} ${EXCLUDE_PATTERN}
 
 #cp -R * "${TARGET_MLAPI_DIR}/"
-install -m 755 -o "www-data" -g "www-data" mlapi.py "${TARGET_MLAPI_DIR}" 
-install -m 755 -o "www-data" -g "www-data" mlapi_logrot.sh "${TARGET_MLAPI_DIR}" 
-install -m 755 -o "www-data" -g "www-data" mlapi_face_train.py "${TARGET_MLAPI_DIR}" 
+install -m 755 -o "$USER_" -g "$GROUP_" mlapi.py "${TARGET_MLAPI_DIR}"
+install -m 755 -o "$USER_" -g "$GROUP_" mlapi_logrot.sh "${TARGET_MLAPI_DIR}"
+install -m 755 -o "$USER_" -g "$GROUP_" mlapi_face_train.py "${TARGET_MLAPI_DIR}"
 
 
-chown -R www-data:www-data ${TARGET_MLAPI_DIR}
+chown -R "$USER_":"$GROUP_" ${TARGET_MLAPI_DIR}
 
 echo "Copying service file"
 cp mlapi.service /etc/systemd/system

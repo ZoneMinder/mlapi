@@ -1,13 +1,5 @@
-
-# *** This is the 'neo-ZMES' forked version! ***
-
 # Note
 All credit goes to the original author @pliablepixels. Please see https://github.com/pliablepixels
-I taught myself python to work on this project, I am learning git, etc. Please forgive the terrible commits.
-
-Please be aware that the 'neo' versions are NOT compatible with the source repos. The module structure is different, functions and args are different and processing the configs are a completely different syntax and structure. My goal is to add some more options for power users and speed things up. In my personal testing I can say that I have blazing fast detections compared to the source repos. Gotify is basically instant as long as the app is not battery optimized (I am unaware of if gotify has an iOS app).
-
-I am actively taking enhancement requests for new features and improvements.
 
 MAJOR CHANGES
 ---
@@ -56,6 +48,7 @@ Install
 =======
 - It's best to create a virtual environment with python3, but not mandatory 
 - You need python3 for this to run
+- You need neo-pyzm (or the accepted merged source pyzm) installed as well. ``sudo pip3 install git+https://github.com/baudneo/pyzm@pull_req`` 
 - face recognition requires cmake/gcc/standard linux dev libraries installed (if you have gcc, you likely have everything else. You may need to install cmake on top of it if you don't already have it)
 - If you plan on using Tiny/Yolo V4, You need Open CV > 4.3
 - If you plan on using the Google Coral TPU, please make sure you have all the libs
@@ -66,19 +59,23 @@ Note that this package also needs OpenCV which is not installed by the above ste
 
 Then:
 ```
- git clone https://github.com/pliablepixels/mlapi
+ # baudneo repo while waiting for merge
+ git clone https://github.com/baudneo/mlapi@pull_req
+ # source after merge
+ git clone https://github.com/ZoneMinder/mlapi
+ 
  cd mlapi
  sudo -H pip3 install -r requirements.txt
  ```
 
-Note: By default, `mlapiconfig.ini` uses the bjoern WSGI server. On debian, the following
+Note: By default, `mlapiconfig.yml` uses the Flask WSGI server. If you want to install bjoern on debian, the following
 dependencies are needed for bjoern:
 ```
 sudo apt install libev-dev libevdev2
 ```
 Alternately, you can just comment out `wsgi_server` and it will fall back to using flask.
 
-Finally, you also need to get the inferencing models. Note this step is ONLY needed if you
+Finally, you also need to get the inference models. Note this step is ONLY needed if you
 don't already have the models downloaded. If you are running mlapi on the same server ZMES is 
 running, you likely already have the models in `/var/lib/zmeventnotification/models/`.
 
@@ -93,7 +90,7 @@ To download all models, including coral edge tpu models:
 INSTALL_CORAL_EDGETPU=yes ./get_models.sh
 ```
 
-**Please make sure you edit `mlapiconfig.ini` to meet your needs**
+**Please make sure you edit `mlapiconfig.yml` and its secrets file to meet your needs**
 
 
 Running
@@ -105,7 +102,7 @@ Server: Manually
 ------------------
 To run the server:
 ```
-python3 ./mlapi.py -c mlapiconfig.ini
+python3 ./mlapi.py -c mlapiconfig.yml
 ```
 
 Server: Automatically
@@ -117,7 +114,7 @@ Client Side: From zm_detect
 -----------------------------
 One of the key uses of mlapi is to act as an API gateway for zm_detect, the ML 
 python process for zmeventnotification. When run in this mode, zm_detect.py does not do local
-inferencing. Instead if invokes an API call to mlapi. The big advantage is mlapi only loads the model(s) once 
+inference. Instead, it invokes an API call to mlapi. The big advantage is mlapi only loads the model(s) once 
 and keeps them in memory, greatly reducing total time for detection.  If you downloaded mlapi to do this,
 read ``objectconfig.ini`` in ``/etc/zm/`` to set it up. It is as simple as configuring the ``[remote]``
 section of ``objectconfig.ini``. 
