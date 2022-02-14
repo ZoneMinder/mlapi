@@ -9,20 +9,16 @@
 #my_custom_variable: '{{s_path}}/to_a_file.txt'  <--- CORRECT
 #some_thing: '{[secrets]} are cool'   <---- CORRECT
 
-
+MLAPI: 1
 
 #######################################
 #    ------  [ GENERAL SECTION ] ------
 #######################################
-# LEAVE base_data_path AS THE FIRST KEY! or as high up as possible. Then it can be used to build all the other paths.
-# ***** PLEASE MAKE THIS AN ABSOLUTE PATH  *****
-# ***** PLEASE MAKE THIS AN ABSOLUTE PATH  *****
 # Example if on a host without neo-ZMES: /home/me/.opt/mlapi
 # Example: if on the same host as neo-ZMES: /var/lib/zmeventnotification/mlapi
 # It seems important to keep this key as the first one (or as high up) in the YAML file, this enables the use of
 # {{base_data_path}} in the base keys.
 # This is where mlapi is installed. (Default: .)
-
 # ***** PLEASE MAKE THIS AN ABSOLUTE PATH  *****
 base_data_path: .
 
@@ -95,7 +91,7 @@ port: 5000
 processes: 1
 
 # WSGI Framework, flask has the option to handle https bjoern does not
-# (this module does not make use of flask https anyways, to clarify)
+# (this module does not make use of flask https anyway; to clarify)
 # (Default: flask)
 #wsgi_server: bjoern
 
@@ -127,13 +123,13 @@ pyzm_overrides:
 
 # Path to where you want the log file stored, not the name of the file, the directory (Default: {{base_data_path}}/logs)
 #log_path: /my/custom/log/path
+
 # Force creation of the log_path if it does not exist (may fail if insufficient privileges)
-#[Default: no]
+# [Default: no]
 #log_path_force: yes
 
-# Name of the logfile DO NOT add trailing '.log' Default: zm_mlapi
-#log_name: mlapi-host1
-
+# Name of the logfile [Default: zm_mlapi.log]
+#log_name: mlapi-host1.log
 
 
 # You can now limit the # of detection process
@@ -368,21 +364,31 @@ monitors:
     #truck_min_confidence: 0.60
     #person_contained_area: 44%
 
-# FUTURE DATA STRUCTURE FOR DEFINED ZONES/POLYGONS
-    defined zones:
-      front yard:
-        pattern: (person|dog|cat)
+    # New way to define polygon zones
+    zones:
+      parking_area:
+        # Polygon points / coords
+        coords: 805,200 1897,125 1910,562 7,594
+        # detection pattern REGEX
+        pattern: (person|car)
 
-        polygons:
-          # specify the polygon points in clockwise order
-          # currently supported keys for resolution are listed here in the example config
-          4320:
-          2160: 0,877 2170,553 3822,1131 3822,2141 0,2159  # AKA 4K
-          1440:
-          1080: 0,427 1085,261 1075,200 1912,448 1912,1071 0,1079
-          720:
-          480:
-          320:
+        contains:
+        # 85% of car bounding box must be contained within this zone area to be considered a hit
+        #          car: 85%
+        # 1 pixel of the person bounding box must be contained in this zone area to be considered a hit
+        #          person: 1px
+        max_size:
+        # A persons bounding box area must not be greater than 60% of this zones total area to be considered a hit
+        #          person: 60%
+        min_conf:
+        # The model must be at least 60% sure that the object is a person to be considered a hit
+        #          person: 0.60
+
+        past_area_diff:
+        # NOT IMPLEMENTED YET
+        # match_past_detections
+        # difference in area between the detected object and the saved bounding box
+      #          person: 0.10
 
 
 ###########################################
@@ -447,7 +453,7 @@ ml_sequence:
       vehicles: [ 'car', 'bus', 'truck', 'boat', 'motorcycle' ]
       plants: [ 'broccoli', 'pottedplant', 'potted_plant' ]
       animals: [ 'dog','cat','mouse','horse' ]
-  #          NOTE! per label overrides go here in 'general'
+  #          NOTE! per label overrides can go here in 'general', this will affect all models
 #      person_min_confidence: '{{person_min_confidence}}'
 #      car_min_confidence: '{{car_min_confidence}}'
 #      dog_min_confidence: '{{dog_min_confidence}}'
@@ -478,6 +484,9 @@ ml_sequence:
         tpu_max_processes: '{{tpu_max_processes}}'
         tpu_max_lock_wait: '{{tpu_max_lock_wait}}'
         max_detection_size: '{{max_detection_size}}'
+        # you can also specify per label filters in each sequence.
+#        car_min_confidence: '60%'
+
       #      Second try MobileNetv2 object detection to compare to MobileDet results
       - name: 'coral::MobileNETv2-SSD 300x300'
         enabled: 'no'
