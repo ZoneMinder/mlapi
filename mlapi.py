@@ -10,6 +10,7 @@ from pathlib import Path
 from threading import Thread
 from traceback import format_exc
 from typing import Optional, Union
+from dataclasses import dataclass
 
 import cryptography.exceptions
 import cv2
@@ -26,7 +27,6 @@ from flask_jwt_extended import (
     get_jwt_identity,
 )
 from flask_restful import Resource, Api, reqparse, abort, inputs
-from pydantic import BaseModel, validator
 from requests import get as req_get
 from werkzeug.datastructures import FileStorage
 
@@ -47,8 +47,8 @@ g: GlobalConfig
 __version__: str = "0.0.1"
 lp: str = "mlapi:"
 
-
-class GatewayConfig(BaseModel):
+@dataclass
+class GatewayConfig:
     """
     GatewayConfig class for mlapi.py
     """
@@ -58,16 +58,6 @@ class GatewayConfig(BaseModel):
     host: str
 
     wsgi: str
-
-    @validator("wsgi")
-    def wsgi_validator(cls, v: str):
-        accepted = {"flask", "bjoern"}
-        # accepted = {"flask", "bjoern", "uvicorn", "starlette"}
-        v = v.lower()
-        if v not in accepted:
-            raise ValueError("mlapi:conf: 'wsgi_server' must be either flask or bjoern")
-        return v
-
 
 def _parse_args() -> dict:
     ap = ArgumentParser()
