@@ -2,9 +2,9 @@
 
 from pyzm.helpers.mlapi_db import Database
 from argparse import ArgumentParser
-from pyzm.helpers.new_yaml import process_config as proc_conf
 from pyzm.helpers.pyzm_utils import LogBuffer
-from pyzm.interface import GlobalConfig
+from pyzm.interface import GlobalConfig, MLAPI_DEFAULT_CONFIG as DEFAULT_CONFIG
+from pyzm.interface import ZMESConfig
 
 g: GlobalConfig = GlobalConfig()
 ap = ArgumentParser()
@@ -18,7 +18,9 @@ ap.add_argument('-c', '--config', default='./mlapiconfig.yml')
 args, u = ap.parse_known_args()
 args = vars(args)
 g.logger = LogBuffer()
-mlc, g = proc_conf(args, type_='mlapi')
+mlc: ZMESConfig = ZMESConfig(args["config"], DEFAULT_CONFIG, "mlapi")
+g.config = mlc.config
+
 db = Database(prompt_to_create=False)
 
 if args.get('list'):
