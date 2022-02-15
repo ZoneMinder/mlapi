@@ -47,6 +47,7 @@ g: GlobalConfig
 __version__: str = "0.0.1"
 lp: str = "mlapi:"
 
+
 @dataclass
 class GatewayConfig:
     """
@@ -55,16 +56,26 @@ class GatewayConfig:
 
     processes: int = 1
     port: int = 5000
-    host: str
+    host: str = "0.0.0.0"
 
-    wsgi: str
+    wsgi: str = "flask"
+
 
 def _parse_args() -> dict:
     ap = ArgumentParser()
     ap.add_argument("-c", "--config", help="config file with path")
-    ap.add_argument("-vv", "--verboseversion", action="store_true", help="print version and exit")
-    ap.add_argument("-v", "--version", action="store_true", help="print mlapi version and exit")
-    ap.add_argument("-d", "--debug", help="enables debug and outputs to console", action="store_true")
+    ap.add_argument(
+        "-vv", "--verboseversion", action="store_true", help="print version and exit"
+    )
+    ap.add_argument(
+        "-v", "--version", action="store_true", help="print mlapi version and exit"
+    )
+    ap.add_argument(
+        "-d",
+        "--debug",
+        help="enables debug and outputs to console",
+        action="store_true",
+    )
     ap.add_argument(
         "-bd",
         "--baredebug",
@@ -75,7 +86,7 @@ def _parse_args() -> dict:
         "-fs",
         "--from-service",
         help="starting mlapi from a service wrapper that handles restarting mlapi, so mlapi "
-             "doesnt handle its own restarts",
+        "doesnt handle its own restarts",
         action="store_true",
     )  # this may not matter at all
     ap.add_argument(
@@ -96,7 +107,9 @@ def _parse_args() -> dict:
                 f"'./mlapiconfig.yml' is being used as there is a file there."
             )
         else:
-            g.logger.error("--config/-c required (Default: ./mlapiconfig.yml) does not exist or is not a file")
+            g.logger.error(
+                "--config/-c required (Default: ./mlapiconfig.yml) does not exist or is not a file"
+            )
             g.logger.log_close()
             exit(1)
     return args
@@ -120,11 +133,15 @@ def main():
     try:
         from pyzm.ZMLog import sig_intr, sig_log_rot
 
-        g.logger.info(f"{lp}signal handlers: Setting up for log 'rotation' and log 'interrupt'")
+        g.logger.info(
+            f"{lp}signal handlers: Setting up for log 'rotation' and log 'interrupt'"
+        )
         signal.signal(signal.SIGHUP, partial(sig_log_rot, g))
         signal.signal(signal.SIGINT, partial(sig_intr, g))
     except Exception as e:
-        g.logger.error(f"{lp} Error setting up log rotate and interrupt signal handlers")
+        g.logger.error(
+            f"{lp} Error setting up log rotate and interrupt signal handlers"
+        )
         g.logger.debug(f"{lp} EXCEPTION>>> {e}")
         raise e
     bg_logs = Thread(
@@ -138,14 +155,21 @@ def main():
     db: mlapi_user_db = mlapi_user_db.Database(prompt_to_create=bool(args.get("debug")))
 
     if not db.get_all_users():
-        g.logger.error(f"{lp} No users found in DB, please create at least 1 user -> python3 mlapi_dbuser.py")
+        g.logger.error(
+            f"{lp} No users found in DB, please create at least 1 user -> python3 mlapi_dbuser.py"
+        )
         g.logger.log_close(exit=1)
         exit(1)
     bg_logs.start()
     wsgi_config = GatewayConfig(
-        host=g.config["host"], port=g.config["port"], processes=g.config["processes"], wsgi=g.config["wsgi_server"]
+        host=g.config["host"],
+        port=g.config["port"],
+        processes=g.config["processes"],
+        wsgi=g.config["wsgi_server"],
     )
-    g.logger.debug(f"perf:{lp}init: total time to build initial config -> {time.perf_counter() - start}")
+    g.logger.debug(
+        f"perf:{lp}init: total time to build initial config -> {time.perf_counter() - start}"
+    )
     app: Flask = Flask(__name__)
     # Override the HTTP exception handler.
     app.handle_http_exception = get_http_exception_handler(app)
@@ -163,7 +187,9 @@ def main():
     flask_api.add_resource(Login, "/login", resource_class_kwargs={"db": db})
     flask_api.add_resource(Health, "/health")
     flask_api.add_resource(
-        Detect, "/detect/object", resource_class_kwargs={"app": app, "args": args, "mlc": mlc, "m": m}
+        Detect,
+        "/detect/object",
+        resource_class_kwargs={"app": app, "args": args, "mlc": mlc, "m": m},
     )
 
     g.logger.info(
@@ -176,21 +202,28 @@ def main():
             import bjoern
         except ImportError:
             g.logger.error(
-                f"{lp} you have specified bjoern as the 'wsgi_server' but it is not installed! Using " f"Flask as WSGI"
+                f"{lp} you have specified bjoern as the 'wsgi_server' but it is not installed! Using "
+                f"Flask as WSGI"
             )
             wsgi_config.wsgi = "flask"
             bjoern = None
         except Exception as exc:
-            g.logger.error(f"{lp} error trying to use bjoern as 'wsgi_server'! Using Flask as WSGI")
+            g.logger.error(
+                f"{lp} error trying to use bjoern as 'wsgi_server'! Using Flask as WSGI"
+            )
             g.logger.debug(f"{lp} EXCEPTION>>> {exc}")
             wsgi_config.wsgi = "flask"
             bjoern = None
         else:
-            g.logger.info(f"mlapi: using 'bjoern' as WSGI server @ {wsgi_config.host}:{wsgi_config.port}")
+            g.logger.info(
+                f"mlapi: using 'bjoern' as WSGI server @ {wsgi_config.host}:{wsgi_config.port}"
+            )
             try:
                 bjoern.run(app, host=wsgi_config.host, port=wsgi_config.port)
             except Exception as exc:
-                g.logger.error(f"{lp} error trying to use bjoern as 'wsgi_server'! Using Flask as WSGI")
+                g.logger.error(
+                    f"{lp} error trying to use bjoern as 'wsgi_server'! Using Flask as WSGI"
+                )
                 g.logger.debug(f"{lp} EXCEPTION>>> {exc}")
                 wsgi_config.wsgi = "flask"
                 bjoern = None
@@ -271,7 +304,9 @@ def get_file(arguments, app: Flask):
         ct = r.headers.get("content-type")
         if cd:
             ext = file_ext(cd)
-            g.logger.debug(f"{lp}content-disposition: extension {ext} derived from {cd}")
+            g.logger.debug(
+                f"{lp}content-disposition: extension {ext} derived from {cd}"
+            )
         elif ct:
             ext = guess_extension(ct.partition(";")[0].strip())
             if ext == ".jpe":
@@ -285,7 +320,9 @@ def get_file(arguments, app: Flask):
             o_file.write(r.content)
     else:
         abort(400, msg="could not determine file type")
-    g.logger.debug(f"{lp} saving received object detection file as -> '{file_with_path_no_ext}{ext}'")
+    g.logger.debug(
+        f"{lp} saving received object detection file as -> '{file_with_path_no_ext}{ext}'"
+    )
     return file_with_path_no_ext, ext
 
 
@@ -320,23 +357,34 @@ class Detect(Resource):
                             f"{lp} The encryption key for '{route_name}' may not match! please check "
                             f"both ZMES and MLAPI configurations! (Invalid Signature)"
                         )
-                        abort(400, msg=f"Check that the symmetrical encryption keys match!")
+                        abort(
+                            400,
+                            msg=f"Check that the symmetrical encryption keys match!",
+                        )
                     except cryptography.fernet.InvalidToken:
                         g.logger.error(
                             f"{lp} The encryption key for '{route_name}' may not match! please check "
                             f"both ZMES and MLAPI configurations! (Invalid Token)"
                         )
-                        abort(400, msg=f"Please check that the symmetrical encryption keys match!")
+                        abort(
+                            400,
+                            msg=f"Please check that the symmetrical encryption keys match!",
+                        )
 
                     except Exception as exc:
                         g.logger.error(
                             f"{lp} the encrypted data is malformed! Please check that the encryption keys match!"
                         )
                         g.logger.error(f"{exc}")
-                        abort(400, msg=f"Please check that the symmetrical encryption keys match!")
+                        abort(
+                            400,
+                            msg=f"Please check that the symmetrical encryption keys match!",
+                        )
                     else:
 
-                        processed_data[dec_key.decode("utf-8")] = dec_data.decode("utf-8")
+                        processed_data[dec_key.decode("utf-8")] = dec_data.decode(
+                            "utf-8"
+                        )
             return processed_data
 
         lp: str = "mlapi:detect:"
@@ -351,10 +399,14 @@ class Detect(Resource):
 
         remote_ip_address: Optional[str] = request.remote_addr or "N/A"
         if request.headers.get("X-Forwarded-For"):
-            g.logger.debug(f"{lp} X-Forwarded-For header found - {request.headers['X-Forwarded-For']}")
+            g.logger.debug(
+                f"{lp} X-Forwarded-For header found - {request.headers['X-Forwarded-For']}"
+            )
             remote_ip_address = request.headers["X-Forwarded-For"]
         elif request.headers.get("X-Real-IP"):
-            g.logger.debug(f"{lp} X-Real-IP header found - {request.headers['X-Real-IP']}")
+            g.logger.debug(
+                f"{lp} X-Real-IP header found - {request.headers['X-Real-IP']}"
+            )
             remote_ip_address = request.headers["X-Real-IP"]
 
         req_args: dict = parse_args()
@@ -398,14 +450,21 @@ class Detect(Resource):
         if req_args["type"].startswith("stream-"):
             type_: str = req_args["type"].split("stream-")[1]
 
-            g.logger.debug(f"{lp} STREAM requesting object detection for type: '{type_}'")
+            g.logger.debug(
+                f"{lp} STREAM requesting object detection for type: '{type_}'"
+            )
             g.config = mlc.config
 
             fip, ext = get_file(req_args, app)
             stream = fi = f"{fip}{ext}"
             if not stream:
-                g.logger.error(f"{lp} there is something wrong with storing the downloaded file!")
-                abort(400, msg="Error trying to store provided file (stream object detection)")
+                g.logger.error(
+                    f"{lp} there is something wrong with storing the downloaded file!"
+                )
+                abort(
+                    400,
+                    msg="Error trying to store provided file (stream object detection)",
+                )
 
             ml_options = g.config["ml_sequence"]
             # type_ is formatted same as config -> object,face,alpr or face,object
@@ -430,20 +489,30 @@ class Detect(Resource):
             reparse_: bool = False
             perf_config_hash: Optional[time.perf_counter] = None
             if mlc is None:
-                g.logger.error(f"{lp} there is no config built as of yet? BUILDING NOW!")
+                g.logger.error(
+                    f"{lp} there is no config built as of yet? BUILDING NOW!"
+                )
                 mlc: ZMESConfig = ZMESConfig(args["config"], DEFAULT_CONFIG, "mlapi")
             else:
                 perf_config_hash = time.perf_counter()
-                _, config_hash_match = mlc.hash(input_file=mlc.config_file_path, comparative_hash=mlc.config_hash)
-                _, secrets_hash_match = mlc.hash(input_file=mlc.secrets_file_path, comparative_hash=mlc.secrets_hash)
+                _, config_hash_match = mlc.hash(
+                    input_file=mlc.config_file_path, comparative_hash=mlc.config_hash
+                )
+                _, secrets_hash_match = mlc.hash(
+                    input_file=mlc.secrets_file_path, comparative_hash=mlc.secrets_hash
+                )
             if config_hash_match:
-                g.logger.debug(f"{lp} the config file has not changed since it was last read!")
+                g.logger.debug(
+                    f"{lp} the config file has not changed since it was last read!"
+                )
             else:
                 g.logger.debug(f"{lp} the config file has changed, rebuilding config!")
                 reparse_ = True
 
             if secrets_hash_match:
-                g.logger.debug(f"{lp} the secrets file has not changed since it was last read!")
+                g.logger.debug(
+                    f"{lp} the secrets file has not changed since it was last read!"
+                )
             else:
                 g.logger.debug(f"{lp} the secrets file has changed, rebuilding config!")
                 reparse_ = True
@@ -458,10 +527,14 @@ class Detect(Resource):
                     f"perf:{lp} total time to hash config/secrets -> {time.perf_counter() - perf_config_hash}"
                 )
             if mid in mlc.built_per_mon_configs:
-                g.logger.debug(f"{lp} monitor {mid} has an overrode configuration built, switching to it...")
+                g.logger.debug(
+                    f"{lp} monitor {mid} has an overrode configuration built, switching to it..."
+                )
                 g.config = mlc.built_per_mon_configs[mid]
             else:
-                g.logger.debug(f"{lp} monitor {mid} has no overrode configuration built, using 'base' config...")
+                g.logger.debug(
+                    f"{lp} monitor {mid} has no overrode configuration built, using 'base' config..."
+                )
                 g.config = mlc.config
 
             # End of hash and reconfigure
@@ -470,19 +543,26 @@ class Detect(Resource):
 
             if encrypted_data and api_auth_enabled:
                 if zm_keys:
-                    g.logger.debug(2, f"{lp} encrypted credentials received, checking keystore for '{route_name}'")
+                    g.logger.debug(
+                        2,
+                        f"{lp} encrypted credentials received, checking keystore for '{route_name}'",
+                    )
                     if route_name not in zm_keys:
                         g.logger.error(
                             f"{lp} There is not a matching key for "
                             f"'{route_name}', check the config files for spelling "
                             f"mistakes or key mismatch!"
                         )
-                        raise ValueError(f"No encryption key in zmes_keys for {route_name}!")
+                        raise ValueError(
+                            f"No encryption key in zmes_keys for {route_name}!"
+                        )
                     key: bytes = f"{zm_keys.get(route_name)}".encode("utf-8")
                     f: Fernet = Fernet(key)
                     # noinspection PyTypeChecker
                     decrypted_data = _crypt(f.decrypt, encrypted_data)
-                    g.config["allow_self_signed"] = str2bool(decrypted_data.get("allow_self_signed"))
+                    g.config["allow_self_signed"] = str2bool(
+                        decrypted_data.get("allow_self_signed")
+                    )
                     if decrypted_data:
                         # url, user, pass decrypted! name and self-signed are plain text
                         g.logger.debug(
@@ -497,10 +577,15 @@ class Detect(Resource):
                         f"'{Path(args['config']).name}' - Create the 'zmes_keys' option in the config file "
                         f"and load with route: key!"
                     )
-                    abort(400, msg=f"No keystore for decrypting configured in {Path(args['config']).name}")
+                    abort(
+                        400,
+                        msg=f"No keystore for decrypting configured in {Path(args['config']).name}",
+                    )
             else:
                 decrypted_data = encrypted_data
-                g.config["allow_self_signed"] = str2bool(decrypted_data.get("allow_self_signed"))
+                g.config["allow_self_signed"] = str2bool(
+                    decrypted_data.get("allow_self_signed")
+                )
 
             if decrypted_data:
                 # we have decrypted data
@@ -528,18 +613,30 @@ class Detect(Resource):
 
             stream_options = g.config.get("stream_sequence", {})
             if stream_options:  # if stream sequence in config use it
-                g.logger.debug(2, f"{lp} found 'stream_sequence' in '{args.get('config')}'")
+                g.logger.debug(
+                    2, f"{lp} found 'stream_sequence' in '{args.get('config')}'"
+                )
             elif zmes_stream_options:
-                g.logger.debug(2, f"{lp} 'stream_sequence' not configured, relying on ZMES stream_sequence")
+                g.logger.debug(
+                    2,
+                    f"{lp} 'stream_sequence' not configured, relying on ZMES stream_sequence",
+                )
                 stream_options = zmes_stream_options
             else:
-                g.logger.error(f"{lp} there are no 'stream_sequences' to be used, this is FATAL")
+                g.logger.error(
+                    f"{lp} there are no 'stream_sequences' to be used, this is FATAL"
+                )
             if not stream_options:
                 g.logger.error(f"{lp} NO STREAM_SEQUENCE ?!")
-                abort(400, msg="No stream options after processing local and sent arguments")
+                abort(
+                    400,
+                    msg="No stream options after processing local and sent arguments",
+                )
 
             # Past event logic, pass along
-            g.config["PAST_EVENT"] = stream_options["PAST_EVENT"] = zmes_stream_options.get("PAST_EVENT")
+            g.config["PAST_EVENT"] = stream_options[
+                "PAST_EVENT"
+            ] = zmes_stream_options.get("PAST_EVENT")
             # resize HAS to be sent from ZMES, if the 2 get out of sync on this, bounding boxes wont be correct
             resize_ = zmes_stream_options.get("resize")
             if resize_:
@@ -548,11 +645,15 @@ class Detect(Resource):
                     if isinstance(resize_, str) and resize_ != "no":
                         resize_ = round(float(resize_))
                 except Exception:
-                    g.logger.error(f"{lp} 'resize' can only be a number (xx / xx.yy) or 'no'! setting to 'no' ")
+                    g.logger.error(
+                        f"{lp} 'resize' can only be a number (xx / xx.yy) or 'no'! setting to 'no' "
+                    )
                     resize_ = "no"
                 finally:
                     g.config["resize"] = stream_options["resize"] = resize_
-                    g.logger.debug(f"{lp} ZMES has resize={resize_} configured, propagating...")
+                    g.logger.debug(
+                        f"{lp} ZMES has resize={resize_} configured, propagating..."
+                    )
 
             global_import = g.config.get("import_zm_zones")
             mid_import = mlc.built_monitors.get(mid, {}).get("import_zm_zones")
@@ -573,26 +674,42 @@ class Detect(Resource):
                 fi = f"{fip}{ext}"
                 stream = fi
                 if stream is None:
-                    g.logger.error(f"{lp} NO event ID or input file to process as a stream")
+                    g.logger.error(
+                        f"{lp} NO event ID or input file to process as a stream"
+                    )
                     abort(400, msg="No stream data (image or event for API)")
 
             ml_options = g.config["ml_sequence"]
             # ml_overrides, sequence and patterns right before we send detection off? does it matter on this end?
             if str2bool(ml_overrides.get("enable")):
-                g.logger.debug(f"{lp} using ML overrides received in request -> {ml_overrides}")
+                g.logger.debug(
+                    f"{lp} using ML overrides received in request -> {ml_overrides}"
+                )
                 ml_options["general"]["model_sequence"] = ml_overrides["model_sequence"]
-                if ml_options.get("object", {}).get("general", {}).get("object_detection_pattern"):
-                    ml_options["object"]["general"]["object_detection_pattern"] = ml_overrides["object"][
+                if (
+                    ml_options.get("object", {})
+                    .get("general", {})
+                    .get("object_detection_pattern")
+                ):
+                    ml_options["object"]["general"][
                         "object_detection_pattern"
-                    ]
-                if ml_options.get("face", {}).get("general", {}).get("face_detection_pattern"):
-                    ml_options["face"]["general"]["face_detection_pattern"] = ml_overrides["face"][
+                    ] = ml_overrides["object"]["object_detection_pattern"]
+                if (
+                    ml_options.get("face", {})
+                    .get("general", {})
+                    .get("face_detection_pattern")
+                ):
+                    ml_options["face"]["general"][
                         "face_detection_pattern"
-                    ]
-                if ml_options.get("alpr", {}).get("general", {}).get("alpr_detection_pattern"):
-                    ml_options["alpr"]["general"]["alpr_detection_pattern"] = ml_overrides["alpr"][
+                    ] = ml_overrides["face"]["face_detection_pattern"]
+                if (
+                    ml_options.get("alpr", {})
+                    .get("general", {})
+                    .get("alpr_detection_pattern")
+                ):
+                    ml_options["alpr"]["general"][
                         "alpr_detection_pattern"
-                    ]
+                    ] = ml_overrides["alpr"]["alpr_detection_pattern"]
             m.set_ml_options(ml_options)
             stream_options["polygons"] = polygons
             matched_data, all_matches, all_frames = m.detect_stream(
@@ -620,10 +737,16 @@ class Detect(Resource):
             multipart_encoded_data: MultipartEncoder = MultipartEncoder(
                 fields={
                     "json": (None, json.dumps(resp_json), "application/json"),
-                    "image": (f"event-{g.eid}-frame-{matched_data['frame_id']}.jpg", img, "application/octet"),
+                    "image": (
+                        f"event-{g.eid}-frame-{matched_data['frame_id']}.jpg",
+                        img,
+                        "application/octet",
+                    ),
                 }
             )
-            g.logger.info(f"{lp} returning matched image and detection data -> {matched_data}")
+            g.logger.info(
+                f"{lp} returning matched image and detection data -> {matched_data}"
+            )
         else:
             resp_json: dict[str, Optional[Union[bool, dict]]] = {
                 "success": success,
@@ -637,7 +760,10 @@ class Detect(Resource):
             )
             g.logger.info(f"{lp} no detection data to return")
 
-        return Response(multipart_encoded_data.to_string(), mimetype=multipart_encoded_data.content_type)
+        return Response(
+            multipart_encoded_data.to_string(),
+            mimetype=multipart_encoded_data.content_type,
+        )
 
 
 # generates a JWT token to use for auth
@@ -653,7 +779,9 @@ class Login(Resource):
         remote_ip_address: str = request.remote_addr or "N/A"
         headers: dict = request.headers
         if headers.get("X-Forwarded-For"):
-            g.logger.debug(f"{lp} X-Forwarded-For headers from {remote_ip_address} - {headers.get('X-Forwarded-For')}")
+            g.logger.debug(
+                f"{lp} X-Forwarded-For headers from {remote_ip_address} - {headers.get('X-Forwarded-For')}"
+            )
             remote_ip_address = headers.get("X-Forwarded-For")
         elif headers.get("X-Real-IP"):
             g.logger.debug(
@@ -673,7 +801,9 @@ class Login(Resource):
 
         # Identity can be any data that is json serializable
         access_token: str = create_access_token(identity=username)
-        response: jsonify = jsonify(access_token=access_token, expires=ACCESS_TOKEN_EXPIRES)
+        response: jsonify = jsonify(
+            access_token=access_token, expires=ACCESS_TOKEN_EXPIRES
+        )
         response.status_code = 200
         return response
 
@@ -707,19 +837,35 @@ def configure_jwt(app):
     def unauthorized_jwt(error):
         ip_addr = request.remote_addr or "N/A"
         g.logger.info(f"mlapi:JWT: FAILED IP: {ip_addr} -> [UNAUTHORIZED JWT]: {error}")
-        return Response(response=json.dumps({"message": "Unauthorized token"}), status=401, mimetype="application/json")
+        return Response(
+            response=json.dumps({"message": "Unauthorized token"}),
+            status=401,
+            mimetype="application/json",
+        )
 
     @JWT.expired_token_loader
     def my_expired_token_callback(expired_token):
         ip_addr = request.remote_addr or "N/A"
-        g.logger.info(f"mlapi:JWT: FAILED IP: {ip_addr} -> [EXPIRED JWT]: {expired_token}")
-        return Response(response=json.dumps({"message": "Expired token"}), status=401, mimetype="application/json")
+        g.logger.info(
+            f"mlapi:JWT: FAILED IP: {ip_addr} -> [EXPIRED JWT]: {expired_token}"
+        )
+        return Response(
+            response=json.dumps({"message": "Expired token"}),
+            status=401,
+            mimetype="application/json",
+        )
 
     @JWT.invalid_token_loader
     def my_invalid_token_callback(invalid_token):
         ip_addr = request.remote_addr or "N/A"
-        g.logger.info(f"mlapi:JWT: FAILED IP: {ip_addr} -> [INVALID JWT]: {invalid_token}")
-        return Response(response=json.dumps({"message": "Invalid token"}), status=422, mimetype="application/json")
+        g.logger.info(
+            f"mlapi:JWT: FAILED IP: {ip_addr} -> [INVALID JWT]: {invalid_token}"
+        )
+        return Response(
+            response=json.dumps({"message": "Invalid token"}),
+            status=422,
+            mimetype="application/json",
+        )
 
 
 if __name__ == "__main__":
