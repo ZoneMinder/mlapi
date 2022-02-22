@@ -14,3 +14,4 @@ face_recognition
 pyzm>=0.3.56
 bjoern
 configupdater
+markupsafe==2.0.1
