@@ -313,6 +313,7 @@ ap.add_argument('-c', '--config',  help='config file with path')
 ap.add_argument('-vv', '--verboseversion', action='store_true', help='print version and exit')
 ap.add_argument('-v', '--version', action='store_true', help='print mlapi version and exit')
 ap.add_argument('-d', '--debug', help='enables debug on console', action='store_true')
+ap.add_argument('-g', '--gpu', type=int, help='specify which GPU to use if multiple are present')
 
 args, u = ap.parse_known_args()
 args = vars(args)
@@ -403,6 +404,28 @@ if __name__ == '__main__':
     
     #app.run(host='0.0.0.0', port=5000, threaded=True)
     #app.run(host='0.0.0.0', port=g.config['port'], threaded=False, processes=g.config['processes'])
+
+    cudaDeviceCount = cv2.cuda.getCudaEnabledDeviceCount()
+    if cudaDeviceCount == 1:
+        deviceCountPlural = ''
+    else:
+        deviceCountPlural = 's'
+
+    g.log.Debug (1, '{} CUDA-enabled device{} found'.format(cudaDeviceCount, deviceCountPlural))
+
+    if args.get('gpu'):
+       selectedGPU = int(args.get('gpu'))
+       if selectedGPU in range(0,cudaDeviceCount):
+         g.log.Debug(1, 'Using GPU #{}'.format(selectedGPU))
+         cv2.cuda.setDevice(selectedGPU)
+       else:
+         g.log.Warning('Invalid CUDA GPU #{} selected, ignoring'.format(selectedGPU))
+         if (cudaDeviceCount > 1):
+            g.log.Info('Valid options for GPU are 0-{}:'.format(cudaDeviceCount-1))
+            for cudaDevice in range(0,cudaDeviceCount):
+                cv2.cuda.printShortCudaDeviceInfo(cudaDevice)
+
+
     if g.config['wsgi_server'] == 'bjoern':
         g.log.Info ('Using bjoern as WSGI server')
         import bjoern
