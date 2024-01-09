@@ -11,7 +11,7 @@ Easy to extend to many/any other model. You can pass images as:
 - a local file
 - remote url
 
-This can also be used as a remote face/recognition and object recognition server if you are using my [ZoneMinder Event Server](https://github.com/pliablepixels/zmeventnotification)!
+This can also be used as a remote face/recognition and object recognition server if you are using my [ZoneMinder Event Server](https://github.com/ZoneMinder/zmeventnotification)!
 
 This is an example of invoking `python ./stream.py video.mp4` ([video courtesy of pexels](https://www.pexels.com/video/people-walking-by-on-a-sidewalk-854100/))
 
@@ -40,7 +40,7 @@ Note that this package also needs OpenCV which is not installed by the above ste
 
 Then:
 ```
- git clone https://github.com/pliablepixels/mlapi
+ git clone https://github.com/ZoneMinder/mlapi
  cd mlapi
  sudo -H pip3 install -r requirements.txt
  ```
@@ -186,6 +186,6 @@ take a look at the full example below.
 
 Full Example
 =============
-Take a look at [stream.py](https://github.com/pliablepixels/mlapi/blob/master/examples/stream.py). This program reads any media source and/or webcam and invokes detection via the API gateway
+Take a look at [stream.py](https://github.com/ZoneMinder/mlapi/blob/master/examples/stream.py). This program reads any media source and/or webcam and invokes detection via the API gateway
 
 
