@@ -3,9 +3,7 @@
 from flask import Flask, send_file, request, jsonify, render_template
 import requests as py_requests
 from flask_restful import Resource, Api, reqparse, abort, inputs
-from flask_jwt_extended import (
-    JWTManager, jwt_required, create_access_token, get_jwt_identity)
-from werkzeug.security import safe_str_cmp
+from flask_jwt_extended import (JWTManager, jwt_required, create_access_token, get_jwt_identity)
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import HTTPException, default_exceptions
 from werkzeug.datastructures import FileStorage
@@ -42,26 +40,21 @@ def file_ext(str):
 def allowed_ext(ext):
     return ext.lower() in g.ALLOWED_EXTENSIONS
 
-# Assigns a unique name to the image and saves it locally for analysis
-
 def parse_args():
     parser = reqparse.RequestParser()
     parser.add_argument('type', location='args',  default=None)
     parser.add_argument('response_format', location='args',  default='legacy')
-    parser.add_argument('delete', location='args',
-                        type=inputs.boolean, default=False)
-    parser.add_argument('download', location='args',
-                        type=inputs.boolean, default=False)
+    parser.add_argument('delete', location='args', type=inputs.boolean, default=False)
+    parser.add_argument('download', location='args', type=inputs.boolean, default=False)
     parser.add_argument('url', default=False)
     parser.add_argument('file', type=FileStorage, location='files')
     return parser.parse_args()
 
 def get_file(args):
-  
+    # Assigns a unique name to the image and saves it locally for analysis
     unique_filename = str(uuid.uuid4())
     file_with_path_no_ext = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
     ext = None
-
    
     # uploaded as multipart data
     if args['file']:
@@ -103,7 +96,7 @@ def get_file(args):
 
 
 class Detect(Resource):
-    @jwt_required
+    @jwt_required()
     def post(self):
         args = parse_args()
         req = request.get_json()
@@ -194,13 +187,13 @@ class Detect(Resource):
         stream = req.get('stream')
            
         if args['type'] == 'face':
-            g.log.Debug (1,'Face Recognition requested')
+            g.log.Debug(1, 'Face Recognition requested')
         
         elif args['type'] == 'alpr':
-            g.log.Debug (1,'ALPR requested')
+            g.log.Debug(1, 'ALPR requested')
 
         elif args['type'] in [None, 'object']:
-            g.log.Debug (1,'Object Recognition requested')
+            g.log.Debug(1, 'Object Recognition requested')
             #m = ObjectDetect.Object()
         else:
             if config_copy:
@@ -221,12 +214,12 @@ class Detect(Resource):
         stream_options['mid'] = mid
         if not stream_options.get('delay') and g.config.get('wait'):
             stream_options['delay'] = g.config.get('wait')
-        g.log.Debug (1, 'Calling detect streams')
+        g.log.Debug(1, 'Calling detect streams')
         matched_data,all_matches = m.detect_stream(stream=stream, options=stream_options, ml_overrides=ml_overrides)
 
-        if matched_data['image_dimensions']:
-            oldh =matched_data['image_dimensions']['original'][0]
-            oldw = matched_data['image_dimensions']['original'][1]
+        #if matched_data['image_dimensions'] and matched_data['image_dimensions']['original']:
+            #oldh = matched_data['image_dimensions']['original'][0]
+            #oldw = matched_data['image_dimensions']['original'][1]
 
         if config_copy:
             g.log.Debug(2, 'Restoring global config & ml_options')
@@ -373,7 +366,6 @@ if not api_options.get('apiurl') or not api_options.get('portalurl'):
 else:
     zmapi = zmapi.ZMApi(options=api_options)
     utils.check_and_import_zones(zmapi)
-    
 
 ml_options = {}
 stream_options = {}
@@ -390,7 +382,6 @@ else:
     g.logger.Debug(2,'mapping legacy ml data from config')
     ml_options = utils.convert_config_to_ml_sequence()
     g.config['ml_options'] = ml_options
-
 
 # stream options will come from zm_detect
 
