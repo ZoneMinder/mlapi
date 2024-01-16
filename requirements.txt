@@ -5,13 +5,13 @@ Werkzeug
 tinydb
 imutils
 numpy
-flask_jwt_extended ~= 3.25.0
-flask_restful ~= 0.3.8
-flask ~= 1.1.2
+flask_jwt_extended
+flask_restful
+flask
 progressbar33
 scikit_learn
 face_recognition
 pyzm>=0.3.56
 bjoern
 configupdater
-markupsafe==2.0.1
+markupsafe
