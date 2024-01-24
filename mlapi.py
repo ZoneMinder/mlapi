@@ -112,13 +112,13 @@ class Detect(Resource):
 
         if not req:
             req = {}
+
         if req.get('mid') and str(req.get('mid')) in g.monitor_config:
             mid = str(req.get('mid'))
             g.logger.Debug (1, 'Monitor ID {} provided & matching config found in mlapi, ignoring objectconfig.ini'.format(mid))
             config_copy = copy.copy(g.config)
             poly_copy = copy.copy(g.polygons)
             g.polygons = copy.copy(g.monitor_polygons[mid])
-
 
             for key in g.monitor_config[mid]:
                 # This will also take care of copying over mid specific stream_options
@@ -139,8 +139,6 @@ class Detect(Resource):
 
                 g.polygons[:] = [item for item in g.polygons if utils.findWholeWord(item['name'])(r)]
                 g.logger.Debug(2, 'Final polygons being used: {}'.format(g.polygons))
-                
-            
             if g.config['ml_sequence'] and g.config['use_sequence'] == 'yes':
                 g.log.Debug(2,'using ml_sequence')
                 ml_options = g.config['ml_sequence']
@@ -153,7 +151,7 @@ class Detect(Resource):
                 ml_options = utils.convert_config_to_ml_sequence()
 
             g.logger.Debug (2, 'Overwriting ml_sequence of pre loaded model')
-            m.set_ml_options(ml_options)  
+            m.set_ml_options(ml_options)
         else:
             g.logger.Debug(1,'Monitor ID not specified, or not found in mlapi config, using zm_detect overrides')
             ml_overrides = req.get('ml_overrides',{})
@@ -167,20 +165,22 @@ class Detect(Resource):
             else:
                 g.logger.Debug(2,'mapping legacy ml data from config')
                 ml_options = utils.convert_config_to_ml_sequence()
+            if 'polygons' in req.get('stream_options', {}):
+                g.logger.Debug(2, "Set polygons from request")
+                g.polygons = req.get('stream_options')['polygons']
+                poly_copy = copy.deepcopy(g.polygons)
 
-            #print (ml_options)
-     
         if g.config.get('stream_sequence'):
             g.logger.Debug(2, 'Found stream_sequence in mlapi config, ignoring objectconfig.ini')
             stream_options = ast.literal_eval(g.config.get('stream_sequence'))
         else:
             stream_options = req.get('stream_options')
         if not stream_options:
-                if config_copy:
-                    g.log.Debug(2, 'Restoring global config & ml_options')
-                    g.config = config_copy
-                    g.polygons = poly_copy
-                abort(400, msg='No stream options found')
+            if config_copy:
+                g.log.Debug(2, 'Restoring global config & ml_options')
+                g.config = config_copy
+                g.polygons = poly_copy
+            abort(400, msg='No stream options found')
         stream_options['api'] = zmapi
         stream_options['polygons'] = g.polygons
 
