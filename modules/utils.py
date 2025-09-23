@@ -29,7 +29,11 @@ def check_and_import_zones(api):
     try:
         j = api._make_request(url=url, type='get')
     except Exception as e:
-        g.logger.Error ('Zone API error: {}'.format(e))
+        g.logger.Error('Zone API error: {}'.format(e))
+        return 
+
+    if not j:
+        g.logger.Error('Zone API returned nothing')
         return 
 
     for item in j.get('zones'):
