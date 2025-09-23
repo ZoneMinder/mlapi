@@ -15,3 +15,4 @@ pyzm>=0.3.56
 bjoern
 configupdater
 markupsafe
+opencv-python
