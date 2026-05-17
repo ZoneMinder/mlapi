@@ -1,3 +1,7 @@
+Update
+========
+This is the legacy version of mlapi. It is recommended that you migrate to [zmesNg](https://github.com/pliablepixels/zmeventnotificationNg)/[documentation](https://zmeventnotificationng.readthedocs.io/en/latest/) (that will automatically upgrade pyzm to the newer version). mlapi is no longer a separate component and is part of the new [pyzm package](https://pyzmng.readthedocs.io/en/latest/).
+
 Note
 =====
 Release 2.1.1 onwards of mlapi requires ES 6.1.0 
